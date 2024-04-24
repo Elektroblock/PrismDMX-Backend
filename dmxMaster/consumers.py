@@ -25,7 +25,7 @@ class ChatConsumer(WebsocketConsumer):
         )
 
         self.accept()
-        self.send("")
+        self.send('{"fixtures":[{"internalID":"0","name":"LampeRGB-1","FixtureGroup":"1","startChannel":"12","channels":[{"internalID":"0","ChanneltType":"RED","ChannelType":"RED","dmxChannel":"0"},{"internalID":"1","ChanneltType":"GREEN","ChannelType":"GREEN","dmxChannel":"1"},{"internalID":"2","ChanneltType":"BLUE","ChannelType":"BLUE","dmxChannel":"3"}]}],"fixtureTemplates":[{"internalID":"0","name":"LampeRGB","channels":[{"internalID":"0","ChanneltType":"RED","ChannelType":"RED","dmxChannel":"0"},{"internalID":"1","ChanneltType":"GREEN","ChannelType":"GREEN","dmxChannel":"1"},{"internalID":"2","ChanneltType":"BLUE","ChannelType":"BLUE","dmxChannel":"2"}]}]}')
 
     def disconnect(self, close_code):
         # Leave room group asdasdasd
@@ -38,6 +38,12 @@ class ChatConsumer(WebsocketConsumer):
         self.send(event['content'])
 
     def receive(self, text_data):
+
+        if "test" == text_data:
+            self.send('{"fixtures":[{"internalID":"0","name":"LampeRGB-1","FixtureGroup":"1","startChannel":"12","channels":[{"internalID":"0","ChanneltType":"RED","ChannelType":"RED","dmxChannel":"0"},{"internalID":"1","ChanneltType":"GREEN","ChannelType":"GREEN","dmxChannel":"1"},{"internalID":"2","ChanneltType":"BLUE","ChannelType":"BLUE","dmxChannel":"3"}]}],"fixtureTemplates":[{"internalID":"0","name":"LampeRGB","channels":[{"internalID":"0","ChanneltType":"RED","ChannelType":"RED","dmxChannel":"0"},{"internalID":"1","ChanneltType":"GREEN","ChannelType":"GREEN","dmxChannel":"1"},{"internalID":"2","ChanneltType":"BLUE","ChannelType":"BLUE","dmxChannel":"2"}]}]}')
+            return
+
+
         try:
             text_data_json = json.loads(text_data)
         except ValueError as e:
