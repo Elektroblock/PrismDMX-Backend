@@ -8,7 +8,7 @@ from asgiref.sync import async_to_sync
 from django.conf import settings
 from .models import Fixture, Template
 
-from dmxMaster.comunicationHelper import getAllFixturesAndTemplates, addFixture, editFixture
+from dmxMaster.comunicationHelper import getAllFixturesAndTemplates, addFixture, editFixture, deleteFixture
 
 
 
