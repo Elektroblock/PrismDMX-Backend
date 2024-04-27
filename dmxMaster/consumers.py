@@ -68,6 +68,9 @@ class ChatConsumer(WebsocketConsumer):
             if "editFixture" in text_data:
                 editFixture(text_data_json)
                 self.send(json.dumps(getAllFixturesAndTemplates()))
+            if "deleteFixture" in text_data:
+                deleteFixture(text_data_json)
+                self.send(json.dumps(getAllFixturesAndTemplates()))
 
 
         except ValueError as e:

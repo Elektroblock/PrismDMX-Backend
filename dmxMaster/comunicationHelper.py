@@ -49,3 +49,7 @@ def editFixture(json):
         channel.channel_type = newChannel["ChannelType"]
 
         channel.save()
+
+def deleteFixture(json):
+    fixture = Fixture.objects.get(id=int(json["deleteFixture"]["internalID"]))
+    fixture.delete()
