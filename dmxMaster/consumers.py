@@ -6,6 +6,7 @@ from channels.generic.websocket import WebsocketConsumer
 from asgiref.sync import async_to_sync
 
 from django.conf import settings
+from .models import Fixture, Template
 
 
 def broadcast_content(content):
@@ -24,8 +25,12 @@ class ChatConsumer(WebsocketConsumer):
             self.channel_name
         )
 
+
         self.accept()
-        self.send('{"fixtures":[{"internalID":"0","name":"LampeRGB-1","FixtureGroup":"1","startChannel":"12","channels":[{"internalID":"0","ChanneltType":"RED","ChannelType":"RED","dmxChannel":"0"},{"internalID":"1","ChanneltType":"GREEN","ChannelType":"GREEN","dmxChannel":"1"},{"internalID":"2","ChanneltType":"BLUE","ChannelType":"BLUE","dmxChannel":"3"}]}],"fixtureTemplates":[{"internalID":"0","name":"LampeRGB","channels":[{"internalID":"0","ChanneltType":"RED","ChannelType":"RED","dmxChannel":"0"},{"internalID":"1","ChanneltType":"GREEN","ChannelType":"GREEN","dmxChannel":"1"},{"internalID":"2","ChanneltType":"BLUE","ChannelType":"BLUE","dmxChannel":"2"}]}]}')
+
+
+
+        self.send('')
 
     def disconnect(self, close_code):
         # Leave room group asdasdasd
@@ -41,6 +46,24 @@ class ChatConsumer(WebsocketConsumer):
 
         if "test" == text_data:
             self.send('{"fixtures":[{"internalID":"0","name":"LampeRGB-1","FixtureGroup":"1","startChannel":"12","channels":[{"internalID":"0","ChanneltType":"RED","ChannelType":"RED","dmxChannel":"0"},{"internalID":"1","ChanneltType":"GREEN","ChannelType":"GREEN","dmxChannel":"1"},{"internalID":"2","ChanneltType":"BLUE","ChannelType":"BLUE","dmxChannel":"3"}]}],"fixtureTemplates":[{"internalID":"0","name":"LampeRGB","channels":[{"internalID":"0","ChanneltType":"RED","ChannelType":"RED","dmxChannel":"0"},{"internalID":"1","ChanneltType":"GREEN","ChannelType":"GREEN","dmxChannel":"1"},{"internalID":"2","ChanneltType":"BLUE","ChannelType":"BLUE","dmxChannel":"2"}]}]}')
+            return
+
+        if "test2" == text_data:
+
+            allDataJson ={
+            "fixtureTemplates": [],"fixtures": []}
+
+            allFixtures = Fixture.objects.all()
+
+            for x in allFixtures:
+                allDataJson["fixtures"].append(x.generateJson())
+
+            allTemplates = Template.objects.all()
+
+            for x in allTemplates:
+                allDataJson["fixtureTemplates"].append(x.generateJson())
+
+            self.send(json.dumps(allDataJson))
             return
 
 
