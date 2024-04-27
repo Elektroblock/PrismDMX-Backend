@@ -8,7 +8,7 @@ from asgiref.sync import async_to_sync
 from django.conf import settings
 from .models import Fixture, Template
 
-from dmxMaster.comunicationHelper import getAllFixturesAndTemplates, addFixture
+from dmxMaster.comunicationHelper import getAllFixturesAndTemplates, addFixture, editFixture
 
 
 
@@ -63,6 +63,10 @@ class ChatConsumer(WebsocketConsumer):
 
             if "newFixture" in text_data:
                 addFixture(text_data_json)
+                self.send(json.dumps(getAllFixturesAndTemplates()))
+
+            if "editFixture" in text_data:
+                editFixture(text_data_json)
                 self.send(json.dumps(getAllFixturesAndTemplates()))
 
 

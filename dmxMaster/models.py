@@ -8,7 +8,7 @@ class Fixture(models.Model):
     fixture_group = models.CharField(max_length=200)
 
     def __str__(self):
-        return self.fixture_name
+        return self.fixture_name + " (" + str(self.id) + ")"
 
     def generateJson(self):
         print("json")
@@ -18,7 +18,7 @@ class Fixture(models.Model):
             "name": self.fixture_name,
             "FixtureGroup": self.fixture_group,
             "internalID": str(self.id),
-            "template": "1",
+            "template": "n/a",
             "startChannel": str(self.fixture_start),
             "channels": [
             ]
@@ -41,7 +41,7 @@ class Channel(models.Model):
     channel_location = models.IntegerField(default=0)
 
     def __str__(self):
-        return self.channel_name
+        return self.channel_name + " (" + str(self.id) + ")"
 
 
 class Template(models.Model):
@@ -67,7 +67,7 @@ class Template(models.Model):
         return fixtureJson
 
     def __str__(self):
-        return self.template_name
+        return self.template_name + " (" + str(self.id) + ")"
 
 
 class TemplateChannel(models.Model):
@@ -77,6 +77,6 @@ class TemplateChannel(models.Model):
     channel_location = models.IntegerField(default=0)
 
     def __str__(self):
-        return self.channel_name
+        return self.channel_name + " (" + str(self.id) + ")"
 
 
