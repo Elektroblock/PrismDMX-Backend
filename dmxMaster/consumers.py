@@ -8,21 +8,9 @@ from asgiref.sync import async_to_sync
 from django.conf import settings
 from .models import Fixture, Template
 
+from dmxMaster.comunicationHelper import getAllFixturesAndTemplates, addFixture
 
-def getAllFixturesAndTemplates():
-    allDataJson ={"fixtureTemplates": [],"fixtures": []}
 
-    allFixtures = Fixture.objects.all()
-
-    for x in allFixtures:
-        allDataJson["fixtures"].append(x.generateJson())
-
-    allTemplates = Template.objects.all()
-
-    for x in allTemplates:
-        allDataJson["fixtureTemplates"].append(x.generateJson())
-
-    return allDataJson
 
 def broadcast_content(content):
     channel_layer = channels.layers.get_channel_layer()
@@ -60,7 +48,8 @@ class ChatConsumer(WebsocketConsumer):
     def receive(self, text_data):
 
         if "test" == text_data:
-            self.send('{"fixtures":[{"internalID":"0","name":"LampeRGB-1","FixtureGroup":"1","startChannel":"12","channels":[{"internalID":"0","ChanneltType":"RED","ChannelType":"RED","dmxChannel":"0"},{"internalID":"1","ChanneltType":"GREEN","ChannelType":"GREEN","dmxChannel":"1"},{"internalID":"2","ChanneltType":"BLUE","ChannelType":"BLUE","dmxChannel":"3"}]}],"fixtureTemplates":[{"internalID":"0","name":"LampeRGB","channels":[{"internalID":"0","ChanneltType":"RED","ChannelType":"RED","dmxChannel":"0"},{"internalID":"1","ChanneltType":"GREEN","ChannelType":"GREEN","dmxChannel":"1"},{"internalID":"2","ChanneltType":"BLUE","ChannelType":"BLUE","dmxChannel":"2"}]}]}')
+            broadcast_content("getAllFixturesAndTemplates()")
+            #self.send('{"fixtures":[{"internalID":"0","name":"LampeRGB-1","FixtureGroup":"1","startChannel":"12","channels":[{"internalID":"0","ChanneltType":"RED","ChannelType":"RED","dmxChannel":"0"},{"internalID":"1","ChanneltType":"GREEN","ChannelType":"GREEN","dmxChannel":"1"},{"internalID":"2","ChanneltType":"BLUE","ChannelType":"BLUE","dmxChannel":"3"}]}],"fixtureTemplates":[{"internalID":"0","name":"LampeRGB","channels":[{"internalID":"0","ChanneltType":"RED","ChannelType":"RED","dmxChannel":"0"},{"internalID":"1","ChanneltType":"GREEN","ChannelType":"GREEN","dmxChannel":"1"},{"internalID":"2","ChanneltType":"BLUE","ChannelType":"BLUE","dmxChannel":"2"}]}]}')
             return
 
         if "test2" == text_data:
@@ -71,11 +60,17 @@ class ChatConsumer(WebsocketConsumer):
 
         try:
             text_data_json = json.loads(text_data)
+
+            if "newFixture" in text_data:
+                addFixture(text_data_json)
+                self.send(json.dumps(getAllFixturesAndTemplates()))
+
+
         except ValueError as e:
             self.send("NO VALID JSON")
             return
 
 
-        broadcast_content(text_data_json)
+
 
 
