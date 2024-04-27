@@ -18,8 +18,8 @@ class Fixture(models.Model):
             "name": self.fixture_name,
             "FixtureGroup": self.fixture_group,
             "internalID": str(self.id),
-            "template": "",
-            "startChannel": self.fixture_start,
+            "template": "1",
+            "startChannel": str(self.fixture_start),
             "channels": [
             ]
         }
