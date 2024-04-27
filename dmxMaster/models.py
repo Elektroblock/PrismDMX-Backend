@@ -17,7 +17,7 @@ class Fixture(models.Model):
         fixtureJson = {
             "name": self.fixture_name,
             "FixtureGroup": self.fixture_group,
-            "internalID": self.id,
+            "internalID": str(self.id),
             "template": "",
             "startChannel": self.fixture_start,
             "channels": [
@@ -25,10 +25,10 @@ class Fixture(models.Model):
         }
         for x in channels:
             fixtureJson["channels"].append({
-                  "internalID": x.id,
+                  "internalID": str(x.id),
                   "ChannelType": x.channel_type,
                   "ChannelName": x.channel_name,
-                  "dmxChannel": x.channel_location
+                  "dmxChannel": str(x.channel_location)
                 },)
         return fixtureJson
 
@@ -53,16 +53,16 @@ class Template(models.Model):
 
         fixtureJson = {
             "name": self.template_name,
-            "internalID": self.id,
+            "internalID": str(self.id),
             "channels": [
             ]
         }
         for x in channels:
             fixtureJson["channels"].append({
-                  "internalID": x.id,
+                  "internalID": str(x.id),
                   "ChannelType": x.channel_type,
                   "ChannelName": x.channel_name,
-                  "dmxChannel": x.channel_location
+                  "dmxChannel": str(x.channel_location)
                 },)
         return fixtureJson
 
