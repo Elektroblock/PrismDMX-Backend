@@ -14,7 +14,7 @@ from dmxMaster.comunicationHelper import getAllFixturesAndTemplates, addFixture,
 
 def broadcast_content(content):
     channel_layer = channels.layers.get_channel_layer()
-    channel_layer.group_send(
+    async_to_sync(channel_layer.group_send)(
         settings.MAIN_GROUP_NAME, {
             "type": 'new_content',
             "content": json.dumps(content),
@@ -23,7 +23,7 @@ def broadcast_content(content):
 
 class ChatConsumer(WebsocketConsumer):
     def connect(self):
-        self.channel_layer.group_add(
+        async_to_sync(self.channel_layer.group_add)(
             settings.MAIN_GROUP_NAME,
             self.channel_name
         )
@@ -37,7 +37,7 @@ class ChatConsumer(WebsocketConsumer):
 
     def disconnect(self, close_code):
         # Leave room group asdasdasd
-        self.channel_layer.group_discard(
+        async_to_sync(self.channel_layer.group_discard)(
             settings.MAIN_GROUP_NAME,
             self.channel_name
         )
@@ -60,17 +60,16 @@ class ChatConsumer(WebsocketConsumer):
 
         try:
             text_data_json = json.loads(text_data)
-
             if "newFixture" in text_data:
                 addFixture(text_data_json)
-                self.send(json.dumps(getAllFixturesAndTemplates()))
+                broadcast_content(getAllFixturesAndTemplates())
 
             if "editFixture" in text_data:
                 editFixture(text_data_json)
-                self.send(json.dumps(getAllFixturesAndTemplates()))
+                broadcast_content(getAllFixturesAndTemplates())
             if "deleteFixture" in text_data:
                 deleteFixture(text_data_json)
-                self.send(json.dumps(getAllFixturesAndTemplates()))
+                broadcast_content(getAllFixturesAndTemplates())
 
 
         except ValueError as e:
