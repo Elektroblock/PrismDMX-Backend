@@ -9,6 +9,21 @@ from django.conf import settings
 from .models import Fixture, Template
 
 
+def getAllFixturesAndTemplates():
+    allDataJson ={"fixtureTemplates": [],"fixtures": []}
+
+    allFixtures = Fixture.objects.all()
+
+    for x in allFixtures:
+        allDataJson["fixtures"].append(x.generateJson())
+
+    allTemplates = Template.objects.all()
+
+    for x in allTemplates:
+        allDataJson["fixtureTemplates"].append(x.generateJson())
+
+    return allDataJson
+
 def broadcast_content(content):
     channel_layer = channels.layers.get_channel_layer()
     channel_layer.group_send(
@@ -30,7 +45,7 @@ class ChatConsumer(WebsocketConsumer):
 
 
 
-        self.send('')
+        self.send(json.dumps(getAllFixturesAndTemplates()))
 
     def disconnect(self, close_code):
         # Leave room group asdasdasd
@@ -49,21 +64,8 @@ class ChatConsumer(WebsocketConsumer):
             return
 
         if "test2" == text_data:
+            self.send(json.dumps(getAllFixturesAndTemplates()))
 
-            allDataJson ={
-            "fixtureTemplates": [],"fixtures": []}
-
-            allFixtures = Fixture.objects.all()
-
-            for x in allFixtures:
-                allDataJson["fixtures"].append(x.generateJson())
-
-            allTemplates = Template.objects.all()
-
-            for x in allTemplates:
-                allDataJson["fixtureTemplates"].append(x.generateJson())
-
-            self.send(json.dumps(allDataJson))
             return
 
 
@@ -75,3 +77,5 @@ class ChatConsumer(WebsocketConsumer):
 
 
         broadcast_content(text_data_json)
+
+
