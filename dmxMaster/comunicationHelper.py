@@ -77,7 +77,7 @@ def deleteProject(json):
 def newProject(json):
     #r = lambda: random.randint(0, 255)
     #print('#%02X%02X%02X' % (r(), r(), r()))
-    project = Project(project_name=json["addProject"]["project"]["name"])
+    project = Project(project_name=json["newProject"]["project"]["name"])
     project.save()
     mixer = Mixer(project=project, color="ffffff", mixerUniqueName="mainMixer", mixerType="5")  # change to 0 later
     mixer.save()
