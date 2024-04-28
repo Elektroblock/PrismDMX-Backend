@@ -1,13 +1,11 @@
-
-
 from .models import TemplateChannel
 from .models import Template
 from .models import Channel
-from .models import Fixture, Project
+from .models import Fixture, Project, Mixer
 import json
 
-
 loadedProject = 0
+
 
 def getAllFixturesAndTemplates(newConnection):
     global loadedProject
@@ -18,24 +16,29 @@ def getAllFixturesAndTemplates(newConnection):
     for x in allProjects:
         packageJson["availableProjects"].append(x.generateJson(loadedProject))
 
-    if (loadedProject>0 and not newConnection):
-        project = Project.objects.get(id=1)
+    if loadedProject > 0 and not newConnection:
+        project = Project.objects.get(id=loadedProject)
         packageJson.update(project.generateFullJson())
     else:
-        packageJson.update({"fixtureTemplates": [], "fixtures": [], "fixtureGroups": [], "mixer": {"color": "#000000","mixerType": "na","isMixerAvailable": "false","pages": []}, "project": {"name": "na", "internalID": "na"}})
+        packageJson.update({"fixtureTemplates": [], "fixtures": [], "fixtureGroups": [],
+                            "mixer": {"color": "#000000", "mixerType": "na", "isMixerAvailable": "false", "pages": []},
+                            "project": {"name": "na", "internalID": "na"}})
 
     return packageJson
 
 
 def addFixture(json):
     # print(json["id"])
-    fixture = Fixture(fixture_name=json["newFixture"]["fixture"]["name"], fixture_start=json["newFixture"]["fixture"]["startChannel"])
+    fixture = Fixture(fixture_name=json["newFixture"]["fixture"]["name"],
+                      fixture_start=json["newFixture"]["fixture"]["startChannel"])
 
     fixture.save()
     for newChannel in json["newFixture"]["fixture"]["channels"]:
         print(newChannel)
-        channel = Channel(fixture=fixture, channel_name=newChannel["ChannelName"], channel_type=newChannel["ChannelType"], channel_location=newChannel["dmxChannel"])
+        channel = Channel(fixture=fixture, channel_name=newChannel["ChannelName"],
+                          channel_type=newChannel["ChannelType"], channel_location=newChannel["dmxChannel"])
         channel.save()
+
 
 def editFixture(json):
     # print(json["id"])
@@ -54,10 +57,24 @@ def editFixture(json):
 
         channel.save()
 
+
 def deleteFixture(json):
     fixture = Fixture.objects.get(id=int(json["deleteFixture"]["internalID"]))
     fixture.delete()
 
+
 def setProject(json):
     global loadedProject
     loadedProject = int(json["setProject"]["project"]["internalID"])
+
+
+def deleteProject(json):
+    project = Project.objects.get(id=int(json["deleteProject"]["project"]["internalID"]))
+    project.delete()
+
+
+def addProject(json):
+    project = Project(project_name=json["addProject"]["project"]["name"])
+    project.save()
+    mixer = Mixer(project=project, color="ffffff", mixerUniqueName="mainMixer", mixerType="5")  # change to 0 later
+    mixer.save()

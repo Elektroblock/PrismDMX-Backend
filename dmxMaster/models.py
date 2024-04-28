@@ -1,6 +1,7 @@
 from django.db import models
 import json
 
+
 # Create your models here.
 
 
@@ -11,7 +12,7 @@ class Project(models.Model):
         return self.project_name + " (" + str(self.id) + ")"
 
     def generateJson(self, loadedProject):
-        if loadedProject==self.id:
+        if loadedProject == self.id:
             json = {
                 "name": self.project_name + "(currently open)",
                 "internalID": str(self.id)
@@ -22,10 +23,12 @@ class Project(models.Model):
                 "internalID": str(self.id)
             }
         return json
+
     def generateFullJson(self):
         allMixers = self.mixer_set.all()
 
-        projectJson = {"fixtureTemplates": [], "fixtures": [], "fixtureGroups": [], "mixer": allMixers[0].generateJson(), "project": self.generateJson(0)}
+        projectJson = {"fixtureTemplates": [], "fixtures": [], "fixtureGroups": [],
+                       "mixer": allMixers[0].generateJson(), "project": self.generateJson(0)}
 
         allFixtures = self.fixture_set.all()
 
@@ -44,6 +47,7 @@ class Project(models.Model):
 
         return projectJson
 
+
 class Fixture(models.Model):
     project = models.ForeignKey(Project, on_delete=models.CASCADE, default=0)
     fixture_name = models.CharField(max_length=200)
@@ -53,7 +57,7 @@ class Fixture(models.Model):
         return self.fixture_name + " (" + str(self.id) + ")"
 
     def generateJson(self):
-        print("json")
+        # print("json")
         channels = self.channel_set.all()
 
         fixtureJson = {
@@ -90,7 +94,7 @@ class Template(models.Model):
     template_name = models.CharField(max_length=200)
 
     def generateJson(self):
-        print("json")
+        # print("json")
         channels = self.templatechannel_set.all()
 
         fixtureJson = {
@@ -130,9 +134,8 @@ class Group(models.Model):
         return self.group_name + " (" + str(self.id) + ")"
 
     def generateJson(self):
-        print("json--group")
+        # print("json--group")
         grouplinks = self.grouplink_set.all()
-
 
         json = {
             "name": self.group_name,
@@ -152,8 +155,6 @@ class GroupLink(models.Model):
         return self.group.group_name + " --> " + self.fixture.fixture_name
 
 
-
-
 class Mixer(models.Model):
     project = models.ForeignKey(Project, on_delete=models.CASCADE, default=0)
     color = models.CharField(max_length=200)
@@ -166,7 +167,6 @@ class Mixer(models.Model):
     def generateJson(self):
         print("json--mixer")
         pages = self.mixerpage_set.all()
-
 
         json = {
             "color": self.color,
@@ -188,7 +188,7 @@ class MixerPage(models.Model):
         return "Project: " + self.mixer.project.project_name + " | Page: " + str(self.pageID) + ""
 
     def generateJson(self):
-        print("json--MixerPage")
+        # print("json--MixerPage")
         faders = self.mixerfader_set.all()
         buttons = self.mixerbutton_set.all()
 
@@ -217,7 +217,7 @@ class MixerButton(models.Model):
         return self.name + " (" + str(self.id) + ")"
 
     def generateJson(self):
-        print("json--MixerButton")
+        # print("json--MixerButton")
 
         json = {
             "name": self.name,
@@ -242,7 +242,7 @@ class MixerFader(models.Model):
         return self.name + " (" + str(self.id) + ")"
 
     def generateJson(self):
-        print("json--MixerFader")
+        # print("json--MixerFader")
         json = {
             "name": self.name,
             "color": self.color,

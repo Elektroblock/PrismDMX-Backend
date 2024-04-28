@@ -8,8 +8,8 @@ from asgiref.sync import async_to_sync
 from django.conf import settings
 from .models import Fixture, Template, Mixer
 
-from dmxMaster.comunicationHelper import getAllFixturesAndTemplates, addFixture, editFixture, deleteFixture, setProject
-
+from dmxMaster.comunicationHelper import getAllFixturesAndTemplates, addFixture, editFixture, deleteFixture, setProject, \
+    deleteProject, addProject
 
 
 def broadcast_content(content):
@@ -28,10 +28,7 @@ class ChatConsumer(WebsocketConsumer):
             self.channel_name
         )
 
-
         self.accept()
-
-
 
         self.send(json.dumps(getAllFixturesAndTemplates(True)))
 
@@ -46,10 +43,9 @@ class ChatConsumer(WebsocketConsumer):
         self.send(event['content'])
 
     def receive(self, text_data):
-
+        print(text_data)
         if "test" == text_data:
             broadcast_content("getAllFixturesAndTemplates()")
-            #self.send('{"fixtures":[{"internalID":"0","name":"LampeRGB-1","FixtureGroup":"1","startChannel":"12","channels":[{"internalID":"0","ChanneltType":"RED","ChannelType":"RED","dmxChannel":"0"},{"internalID":"1","ChanneltType":"GREEN","ChannelType":"GREEN","dmxChannel":"1"},{"internalID":"2","ChanneltType":"BLUE","ChannelType":"BLUE","dmxChannel":"3"}]}],"fixtureTemplates":[{"internalID":"0","name":"LampeRGB","channels":[{"internalID":"0","ChanneltType":"RED","ChannelType":"RED","dmxChannel":"0"},{"internalID":"1","ChanneltType":"GREEN","ChannelType":"GREEN","dmxChannel":"1"},{"internalID":"2","ChanneltType":"BLUE","ChannelType":"BLUE","dmxChannel":"2"}]}]}')
             return
 
         if "test2" == text_data:
@@ -60,29 +56,22 @@ class ChatConsumer(WebsocketConsumer):
 
             return
 
-
         try:
             text_data_json = json.loads(text_data)
             if "newFixture" in text_data:
                 addFixture(text_data_json)
-                broadcast_content(getAllFixturesAndTemplates(False))
-
             if "editFixture" in text_data:
                 editFixture(text_data_json)
-                broadcast_content(getAllFixturesAndTemplates(False))
             if "deleteFixture" in text_data:
                 deleteFixture(text_data_json)
-                broadcast_content(getAllFixturesAndTemplates(False))
             if "setProject" in text_data:
                 setProject(text_data_json)
-                broadcast_content(getAllFixturesAndTemplates(False))
-
+            if "deleteProject" in text_data:
+                deleteProject(text_data_json)
+            if "addProject" in text_data:
+                addProject(text_data_json)
+            broadcast_content(getAllFixturesAndTemplates(False))
 
         except ValueError as e:
             self.send("NO VALID JSON")
             return
-
-
-
-
-
