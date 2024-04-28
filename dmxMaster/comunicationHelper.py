@@ -3,28 +3,32 @@
 from .models import TemplateChannel
 from .models import Template
 from .models import Channel
-from .models import Fixture
+from .models import Fixture, Project
 import json
 
+
+loadedProject = 0
+
 def getAllFixturesAndTemplates():
-    allDataJson ={"fixtureTemplates": [],"fixtures": []}
+    packageJson = {"availableProjects": []}
 
-    allFixtures = Fixture.objects.all()
+    allProjects = Project.objects.all()
 
-    for x in allFixtures:
-        allDataJson["fixtures"].append(x.generateJson())
+    for x in allProjects:
+        packageJson["availableProjects"].append(x.generateJson())
 
-    allTemplates = Template.objects.all()
+    if (loadedProject>0):
+        project = Project.objects.get(id=1)
+        packageJson.update(project.generateFullJson())
+    else:
+        packageJson.update({"fixtureTemplates": [], "fixtures": [], "fixtureGroups": [], "mixer": {"color": "#000000","mixerType": "n/a","isMixerAvailable": "false","pages": []}, "project": {"name": "n/a", "internalID": "n/a"}})
 
-    for x in allTemplates:
-        allDataJson["fixtureTemplates"].append(x.generateJson())
-
-    return allDataJson
+    return packageJson
 
 
 def addFixture(json):
     # print(json["id"])
-    fixture = Fixture(fixture_name=json["newFixture"]["fixture"]["name"], fixture_start=json["newFixture"]["fixture"]["startChannel"], fixture_group=json["newFixture"]["fixture"]["FixtureGroup"])
+    fixture = Fixture(fixture_name=json["newFixture"]["fixture"]["name"], fixture_start=json["newFixture"]["fixture"]["startChannel"])
 
     fixture.save()
     for newChannel in json["newFixture"]["fixture"]["channels"]:
@@ -37,7 +41,6 @@ def editFixture(json):
     fixture = Fixture.objects.get(id=int(json["editFixture"]["fixture"]["internalID"]))
 
     fixture.fixture_name = json["editFixture"]["fixture"]["name"]
-    fixture.fixture_group = json["editFixture"]["fixture"]["FixtureGroup"]
     fixture.fixture_start = json["editFixture"]["fixture"]["startChannel"]
 
     fixture.save()
@@ -53,3 +56,7 @@ def editFixture(json):
 def deleteFixture(json):
     fixture = Fixture.objects.get(id=int(json["deleteFixture"]["internalID"]))
     fixture.delete()
+
+def setProject(json):
+    global loadedProject
+    loadedProject = int(json["setProject"])

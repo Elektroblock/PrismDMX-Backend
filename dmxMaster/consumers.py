@@ -6,9 +6,9 @@ from channels.generic.websocket import WebsocketConsumer
 from asgiref.sync import async_to_sync
 
 from django.conf import settings
-from .models import Fixture, Template
+from .models import Fixture, Template, Mixer
 
-from dmxMaster.comunicationHelper import getAllFixturesAndTemplates, addFixture, editFixture, deleteFixture
+from dmxMaster.comunicationHelper import getAllFixturesAndTemplates, addFixture, editFixture, deleteFixture, setProject
 
 
 
@@ -53,7 +53,10 @@ class ChatConsumer(WebsocketConsumer):
             return
 
         if "test2" == text_data:
-            self.send(json.dumps(getAllFixturesAndTemplates()))
+            allMixers = Mixer.objects.all()
+
+            for x in allMixers:
+                self.send(json.dumps(x.generateJson()))
 
             return
 
@@ -69,6 +72,9 @@ class ChatConsumer(WebsocketConsumer):
                 broadcast_content(getAllFixturesAndTemplates())
             if "deleteFixture" in text_data:
                 deleteFixture(text_data_json)
+                broadcast_content(getAllFixturesAndTemplates())
+            if "setProject" in text_data:
+                setProject(text_data_json)
                 broadcast_content(getAllFixturesAndTemplates())
 
 
