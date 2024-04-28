@@ -75,7 +75,7 @@ def deleteProject(json):
 
 
 def newProject(json):
-    # r = lambda: random.randint(0, 255)
+    # r = lambda: random.randint(0, 255)ddd
     # print('#%02X%02X%02X' % (r(), r(), r()))
     project = Project(project_name=json["newProject"]["project"]["name"])
     project.save()

@@ -60,17 +60,22 @@ class ChatConsumer(WebsocketConsumer):
             text_data_json = json.loads(text_data)
             if "newFixture" in text_data:
                 addFixture(text_data_json)
+                broadcast_content(getAllFixturesAndTemplates(False))
             if "editFixture" in text_data:
                 editFixture(text_data_json)
+                broadcast_content(getAllFixturesAndTemplates(False))
             if "deleteFixture" in text_data:
                 deleteFixture(text_data_json)
+                broadcast_content(getAllFixturesAndTemplates(False))
             if "setProject" in text_data:
                 setProject(text_data_json)
+                broadcast_content(getAllFixturesAndTemplates(False))
             if "deleteProject" in text_data:
                 deleteProject(text_data_json)
+                broadcast_content(getAllFixturesAndTemplates(False))
             if "newProject" in text_data:
                 newProject(text_data_json)
-            broadcast_content(getAllFixturesAndTemplates(False))
+                broadcast_content(getAllFixturesAndTemplates(True))
 
         except ValueError as e:
             self.send("NO VALID JSON")
