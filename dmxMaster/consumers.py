@@ -9,7 +9,7 @@ from django.conf import settings
 from .models import Fixture, Template, Mixer
 
 from dmxMaster.comunicationHelper import getAllFixturesAndTemplates, addFixture, editFixture, deleteFixture, setProject, \
-    deleteProject, addProject
+    deleteProject, newProject
 
 
 def broadcast_content(content):
@@ -68,8 +68,8 @@ class ChatConsumer(WebsocketConsumer):
                 setProject(text_data_json)
             if "deleteProject" in text_data:
                 deleteProject(text_data_json)
-            if "addProject" in text_data:
-                addProject(text_data_json)
+            if "newProject" in text_data:
+                newProject(text_data_json)
             broadcast_content(getAllFixturesAndTemplates(False))
 
         except ValueError as e:

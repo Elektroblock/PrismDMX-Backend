@@ -3,6 +3,7 @@ from .models import Template
 from .models import Channel
 from .models import Fixture, Project, Mixer
 import json
+import random
 
 loadedProject = 0
 
@@ -73,7 +74,9 @@ def deleteProject(json):
     project.delete()
 
 
-def addProject(json):
+def newProject(json):
+    #r = lambda: random.randint(0, 255)
+    #print('#%02X%02X%02X' % (r(), r(), r()))
     project = Project(project_name=json["addProject"]["project"]["name"])
     project.save()
     mixer = Mixer(project=project, color="ffffff", mixerUniqueName="mainMixer", mixerType="5")  # change to 0 later

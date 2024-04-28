@@ -169,7 +169,7 @@ class Mixer(models.Model):
         pages = self.mixerpage_set.all()
 
         json = {
-            "color": self.color,
+            "color": "0x"+ self.color,
             "mixerType": self.mixerType,
             "isMixerAvailable": "true",
             "pages": [],
