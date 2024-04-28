@@ -53,9 +53,9 @@ class Fixture(models.Model):
 
         fixtureJson = {
             "name": self.fixture_name,
-            "FixtureGroup": "n/a",
+            "FixtureGroup": "na",
             "internalID": str(self.id),
-            "template": "n/a",
+            "template": "na",
             "startChannel": str(self.fixture_start),
             "channels": [
             ]

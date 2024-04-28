@@ -21,7 +21,7 @@ def getAllFixturesAndTemplates():
         project = Project.objects.get(id=1)
         packageJson.update(project.generateFullJson())
     else:
-        packageJson.update({"fixtureTemplates": [], "fixtures": [], "fixtureGroups": [], "mixer": {"color": "#000000","mixerType": "n/a","isMixerAvailable": "false","pages": []}, "project": {"name": "n/a", "internalID": "n/a"}})
+        packageJson.update({"fixtureTemplates": [], "fixtures": [], "fixtureGroups": [], "mixer": {"color": "#000000","mixerType": "na","isMixerAvailable": "false","pages": []}, "project": {"name": "na", "internalID": "na"}})
 
     return packageJson
 
