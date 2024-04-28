@@ -1,7 +1,6 @@
 from django.db import models
 import json
 
-
 # Create your models here.
 
 
@@ -11,16 +10,22 @@ class Project(models.Model):
     def __str__(self):
         return self.project_name + " (" + str(self.id) + ")"
 
-    def generateJson(self):
-        json = {
-            "name": self.project_name,
-            "internalID": str(self.id)
-        }
+    def generateJson(self, loadedProject):
+        if loadedProject==self.id:
+            json = {
+                "name": self.project_name + "(currently open)",
+                "internalID": str(self.id)
+            }
+        else:
+            json = {
+                "name": self.project_name,
+                "internalID": str(self.id)
+            }
         return json
     def generateFullJson(self):
         allMixers = self.mixer_set.all()
 
-        projectJson = {"fixtureTemplates": [], "fixtures": [], "fixtureGroups": [], "mixer": allMixers[0].generateJson(), "project": self.generateJson()}
+        projectJson = {"fixtureTemplates": [], "fixtures": [], "fixtureGroups": [], "mixer": allMixers[0].generateJson(), "project": self.generateJson(0)}
 
         allFixtures = self.fixture_set.all()
 

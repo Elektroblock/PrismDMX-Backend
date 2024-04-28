@@ -9,19 +9,20 @@ import json
 
 loadedProject = 0
 
-def getAllFixturesAndTemplates():
+def getAllFixturesAndTemplates(newConnection):
+    global loadedProject
     packageJson = {"availableProjects": []}
 
     allProjects = Project.objects.all()
 
     for x in allProjects:
-        packageJson["availableProjects"].append(x.generateJson())
+        packageJson["availableProjects"].append(x.generateJson(loadedProject))
 
-    if (loadedProject>0):
+    if (loadedProject>0 and not newConnection):
         project = Project.objects.get(id=1)
         packageJson.update(project.generateFullJson())
     else:
-        packageJson.update({"fixtureTemplates": [], "fixtures": [], "fixtureGroups": [], "mixer": {"color": "#000000","mixerType": "na","isMixerAvailable": "false","pages": []}, "project": {"name": "na", "internalID": "na"}})
+        packageJson.update({"fixtureTemplates": [], "fixtures": [], "fixtureGroups": [], "m ixer": {"color": "#000000","mixerType": "na","isMixerAvailable": "false","pages": []}, "project": {"name": "na", "internalID": "na"}})
 
     return packageJson
 

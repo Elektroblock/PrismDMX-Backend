@@ -33,7 +33,7 @@ class ChatConsumer(WebsocketConsumer):
 
 
 
-        self.send(json.dumps(getAllFixturesAndTemplates()))
+        self.send(json.dumps(getAllFixturesAndTemplates(True)))
 
     def disconnect(self, close_code):
         # Leave room group asdasdasd
@@ -65,17 +65,17 @@ class ChatConsumer(WebsocketConsumer):
             text_data_json = json.loads(text_data)
             if "newFixture" in text_data:
                 addFixture(text_data_json)
-                broadcast_content(getAllFixturesAndTemplates())
+                broadcast_content(getAllFixturesAndTemplates(False))
 
             if "editFixture" in text_data:
                 editFixture(text_data_json)
-                broadcast_content(getAllFixturesAndTemplates())
+                broadcast_content(getAllFixturesAndTemplates(False))
             if "deleteFixture" in text_data:
                 deleteFixture(text_data_json)
-                broadcast_content(getAllFixturesAndTemplates())
+                broadcast_content(getAllFixturesAndTemplates(False))
             if "setProject" in text_data:
                 setProject(text_data_json)
-                broadcast_content(getAllFixturesAndTemplates())
+                broadcast_content(getAllFixturesAndTemplates(False))
 
 
         except ValueError as e:
