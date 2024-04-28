@@ -156,7 +156,7 @@ class Mixer(models.Model):
     mixerType = models.CharField(max_length=200)
 
     def __str__(self):
-        return "test"
+        return self.project.project_name + " MIXER"
 
     def generateJson(self):
         print("json--mixer")
