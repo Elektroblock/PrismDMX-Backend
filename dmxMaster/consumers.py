@@ -11,20 +11,32 @@ from .models import Fixture, Template, Mixer
 from dmxMaster.comunicationHelper import getAllFixturesAndTemplates, addFixture, editFixture, deleteFixture, setProject, \
     deleteProject, newProject
 
-
-def broadcast_content(content):
+#OVERVIEW_GROUP_NAME = "OVERVIEWGroup"
+#CONNECTED_GROUP_NAME = "CONNECTEDGroup"
+def broadcast_OVERVIEW(content):
     channel_layer = channels.layers.get_channel_layer()
     async_to_sync(channel_layer.group_send)(
-        settings.MAIN_GROUP_NAME, {
+        settings.OVERVIEW_GROUP_NAME, {
             "type": 'new_content',
             "content": json.dumps(content),
         })
 
+def broadcast_CONNECTED(content):
+    channel_layer = channels.layers.get_channel_layer()
+    async_to_sync(channel_layer.group_send)(
+        settings.CONNECTED_GROUP_NAME, {
+            "type": 'new_content',
+            "content": json.dumps(content),
+        })
+
+def push_all_data():
+    broadcast_CONNECTED(getAllFixturesAndTemplates(False))
+    broadcast_OVERVIEW(getAllFixturesAndTemplates(True))
 
 class ChatConsumer(WebsocketConsumer):
     def connect(self):
         async_to_sync(self.channel_layer.group_add)(
-            settings.MAIN_GROUP_NAME,
+            settings.OVERVIEW_GROUP_NAME,
             self.channel_name
         )
 
@@ -35,7 +47,11 @@ class ChatConsumer(WebsocketConsumer):
     def disconnect(self, close_code):
         # Leave room group asdasdasd
         async_to_sync(self.channel_layer.group_discard)(
-            settings.MAIN_GROUP_NAME,
+            settings.OVERVIEW_GROUP_NAME,
+            self.channel_name
+        )
+        async_to_sync(self.channel_layer.group_discard)(
+            settings.CONNECTED_GROUP_NAME,
             self.channel_name
         )
 
@@ -60,22 +76,27 @@ class ChatConsumer(WebsocketConsumer):
             text_data_json = json.loads(text_data)
             if "newFixture" in text_data:
                 addFixture(text_data_json)
-                broadcast_content(getAllFixturesAndTemplates(False))
             if "editFixture" in text_data:
                 editFixture(text_data_json)
-                broadcast_content(getAllFixturesAndTemplates(False))
             if "deleteFixture" in text_data:
                 deleteFixture(text_data_json)
-                broadcast_content(getAllFixturesAndTemplates(False))
             if "setProject" in text_data:
+                async_to_sync(self.channel_layer.group_add)(
+                    settings.CONNECTED_GROUP_NAME,
+                    self.channel_name
+                )
+                async_to_sync(self.channel_layer.group_discard)(
+                    settings.OVERVIEW_GROUP_NAME,
+                    self.channel_name
+                )
                 setProject(text_data_json)
-                broadcast_content(getAllFixturesAndTemplates(False))
             if "deleteProject" in text_data:
                 deleteProject(text_data_json)
-                broadcast_content(getAllFixturesAndTemplates(False))
             if "newProject" in text_data:
                 newProject(text_data_json)
-                broadcast_content(getAllFixturesAndTemplates(True))
+
+            push_all_data()
+
 
         except ValueError as e:
             self.send("NO VALID JSON")

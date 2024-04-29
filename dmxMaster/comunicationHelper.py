@@ -70,8 +70,14 @@ def setProject(json):
 
 
 def deleteProject(json):
-    project = Project.objects.get(id=int(json["deleteProject"]["project"]["internalID"]))
-    project.delete()
+    try:
+        global loadedProject
+        project = Project.objects.get(id=int(json["deleteProject"]["project"]["internalID"]))
+        project.delete()
+        if loadedProject == int(json["deleteProject"]["project"]["internalID"]):
+            loadedProject = 0
+    except:
+        return
 
 
 def newProject(json):
