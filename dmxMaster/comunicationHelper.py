@@ -29,7 +29,8 @@ def getAllFixturesAndTemplates(newConnection):
 
 
 def addFixture(json):
-    project = Project.objects.get(id=int(json["deleteProject"]["project"]["internalID"]))
+    global loadedProject
+    project = Project.objects.get(id=loadedProject)
     # print(json["id"])
     fixture = Fixture(project=project, fixture_name=json["newFixture"]["fixture"]["name"],
                       fixture_start=json["newFixture"]["fixture"]["startChannel"])
