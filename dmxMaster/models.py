@@ -51,7 +51,7 @@ class Project(models.Model):
 class Fixture(models.Model):
     project = models.ForeignKey(Project, on_delete=models.CASCADE, default=0)
     fixture_name = models.CharField(max_length=200)
-    fixture_start = models.IntegerField()
+    fixture_start = models.IntegerField(default=1)
 
     def __str__(self):
         return self.fixture_name + " (" + str(self.id) + ")"

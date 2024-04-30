@@ -45,10 +45,14 @@ def addFixture(json):
 
 def editFixture(json):
     # print(json["id"])
+
+
     fixture = Fixture.objects.get(id=int(json["editFixture"]["fixture"]["internalID"]))
 
     fixture.fixture_name = json["editFixture"]["fixture"]["name"]
     fixture.fixture_start = json["editFixture"]["fixture"]["startChannel"]
+    if fixture.fixture_start < 1:
+        fixture.fixture_start = 1
 
     fixture.save()
     for newChannel in json["editFixture"]["fixture"]["channels"]:
