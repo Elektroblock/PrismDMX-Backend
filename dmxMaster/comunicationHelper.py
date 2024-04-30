@@ -74,10 +74,12 @@ def deleteFixture(json):
 
 def setProject(json):
     try:
+        project = Project.objects.get(id=int(json["setProject"]["project"]["internalID"]))
         global loadedProject
         loadedProject = int(json["setProject"]["project"]["internalID"])
+        return True
     except:
-        return
+        return False
 
 
 def deleteProject(json):

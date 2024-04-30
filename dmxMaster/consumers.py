@@ -81,15 +81,18 @@ class ChatConsumer(WebsocketConsumer):
             if "deleteFixture" in text_data:
                 deleteFixture(text_data_json)
             if "setProject" in text_data:
-                async_to_sync(self.channel_layer.group_add)(
-                    settings.CONNECTED_GROUP_NAME,
-                    self.channel_name
-                )
-                async_to_sync(self.channel_layer.group_discard)(
-                    settings.OVERVIEW_GROUP_NAME,
-                    self.channel_name
-                )
-                setProject(text_data_json)
+                if setProject(text_data_json):
+                    async_to_sync(self.channel_layer.group_add)(
+                        settings.CONNECTED_GROUP_NAME,
+                        self.channel_name
+                    )
+                    async_to_sync(self.channel_layer.group_discard)(
+                        settings.OVERVIEW_GROUP_NAME,
+                        self.channel_name
+                    )
+                else:
+                    self.send('{"fixtureTemplates": [], "fixtures": [], "fixtureGroups": [],"mixer": {"color": "#000000", "mixerType": "na", "isMixerAvailable": "false", "pages": []},"project": {"name": "naa", "internalID": "naa"}}')
+
             if "deleteProject" in text_data:
                 deleteProject(text_data_json)
             if "newProject" in text_data:
