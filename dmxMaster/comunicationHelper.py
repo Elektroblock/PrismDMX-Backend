@@ -29,43 +29,47 @@ def getAllFixturesAndTemplates(newConnection):
 
 
 def addFixture(json):
-    global loadedProject
-    project = Project.objects.get(id=loadedProject)
-    # print(json["id"])
-    fixture = Fixture(project=project, fixture_name=json["newFixture"]["fixture"]["name"],
-                      fixture_start=json["newFixture"]["fixture"]["startChannel"])
+    try:
+        global loadedProject
+        project = Project.objects.get(id=loadedProject)
+        # print(json["id"])
+        fixture = Fixture(project=project, fixture_name=json["newFixture"]["fixture"]["name"],
+                          fixture_start=json["newFixture"]["fixture"]["startChannel"])
 
-    if fixture.fixture_start < 1:
-        fixture.fixture_start = 1
-    fixture.save()
-    for newChannel in json["newFixture"]["fixture"]["channels"]:
-        print(newChannel)
-        channel = Channel(fixture=fixture, channel_name=newChannel["ChannelName"],
-                          channel_type=newChannel["ChannelType"], channel_location=newChannel["dmxChannel"])
-        channel.save()
+        if int(fixture.fixture_start) < 1:
+            fixture.fixture_start = 1
+        fixture.save()
+        for newChannel in json["newFixture"]["fixture"]["channels"]:
+            print(newChannel)
+            channel = Channel(fixture=fixture, channel_name=newChannel["ChannelName"],
+                              channel_type=newChannel["ChannelType"], channel_location=newChannel["dmxChannel"])
+            channel.save()
+    except:
+        return
 
 
 def editFixture(json):
     # print(json["id"])
 
+    try:
+        fixture = Fixture.objects.get(id=int(json["editFixture"]["fixture"]["internalID"]))
 
-    fixture = Fixture.objects.get(id=int(json["editFixture"]["fixture"]["internalID"]))
+        fixture.fixture_name = json["editFixture"]["fixture"]["name"]
+        fixture.fixture_start = json["editFixture"]["fixture"]["startChannel"]
+        if int(fixture.fixture_start) < 1:
+            fixture.fixture_start = 1
 
-    fixture.fixture_name = json["editFixture"]["fixture"]["name"]
-    fixture.fixture_start = json["editFixture"]["fixture"]["startChannel"]
-    if fixture.fixture_start < 1:
-        fixture.fixture_start = 1
+        fixture.save()
+        for newChannel in json["editFixture"]["fixture"]["channels"]:
+            print(newChannel)
+            channel = Channel.objects.get(id=int(newChannel["internalID"]))
+            channel.channel_name = newChannel["ChannelName"]
+            channel.channel_location = newChannel["dmxChannel"]
+            channel.channel_type = newChannel["ChannelType"]
 
-    fixture.save()
-    for newChannel in json["editFixture"]["fixture"]["channels"]:
-        print(newChannel)
-        channel = Channel.objects.get(id=int(newChannel["internalID"]))
-        channel.channel_name = newChannel["ChannelName"]
-        channel.channel_location = newChannel["dmxChannel"]
-        channel.channel_type = newChannel["ChannelType"]
-
-        channel.save()
-
+            channel.save()
+    except:
+        return
 
 def deleteFixture(json):
     fixture = Fixture.objects.get(id=int(json["deleteFixture"]["internalID"]))
