@@ -35,6 +35,8 @@ def addFixture(json):
     fixture = Fixture(project=project, fixture_name=json["newFixture"]["fixture"]["name"],
                       fixture_start=json["newFixture"]["fixture"]["startChannel"])
 
+    if fixture.fixture_start < 1:
+        fixture.fixture_start = 1
     fixture.save()
     for newChannel in json["newFixture"]["fixture"]["channels"]:
         print(newChannel)
