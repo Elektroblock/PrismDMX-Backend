@@ -13,25 +13,19 @@ from dmxMaster.comunicationHelper import getAllFixturesAndTemplates, addFixture,
 
 #OVERVIEW_GROUP_NAME = "OVERVIEWGroup"
 #CONNECTED_GROUP_NAME = "CONNECTEDGroup"
-def broadcast_OVERVIEW(content):
+def broadcast(content, group):
     channel_layer = channels.layers.get_channel_layer()
     async_to_sync(channel_layer.group_send)(
-        settings.OVERVIEW_GROUP_NAME, {
+        group, {
             "type": 'new_content',
             "content": json.dumps(content),
         })
 
-def broadcast_CONNECTED(content):
-    channel_layer = channels.layers.get_channel_layer()
-    async_to_sync(channel_layer.group_send)(
-        settings.CONNECTED_GROUP_NAME, {
-            "type": 'new_content',
-            "content": json.dumps(content),
-        })
+
 
 def push_all_data():
-    broadcast_CONNECTED(getAllFixturesAndTemplates(False))
-    broadcast_OVERVIEW(getAllFixturesAndTemplates(True))
+    broadcast(getAllFixturesAndTemplates(False), settings.CONNECTED_GROUP_NAME)
+    broadcast(getAllFixturesAndTemplates(True), settings.OVERVIEW_GROUP_NAME)
 
 class ChatConsumer(WebsocketConsumer):
     def connect(self):
@@ -61,7 +55,7 @@ class ChatConsumer(WebsocketConsumer):
     def receive(self, text_data):
         print(text_data)
         if "test" == text_data:
-            broadcast_content("getAllFixturesAndTemplates()")
+            #broadcast_content("getAllFixturesAndTemplates()")
             return
 
         if "test2" == text_data:
