@@ -104,5 +104,5 @@ def newProject(json):
     project.save()
     mixer = Mixer(project=project, color="ffffff", mixerUniqueName="mainMixer", mixerType="5")  # change to 0 later
     mixer.save()
-    global loadedProject
-    loadedProject = project.id
+    #global loadedProject
+    #loadedProject = project.id

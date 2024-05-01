@@ -94,6 +94,14 @@ class ChatConsumer(WebsocketConsumer):
                     self.send('{"fixtureTemplates": [], "fixtures": [], "fixtureGroups": [],"mixer": {"color": "#000000", "mixerType": "na", "isMixerAvailable": "false", "pages": []},"project": {"name": "naa", "internalID": "naa"}}')
 
             if "deleteProject" in text_data:
+                async_to_sync(self.channel_layer.group_add)(
+                    settings.OVERVIEW_GROUP_NAME,
+                    self.channel_name
+                )
+                async_to_sync(self.channel_layer.group_discard)(
+                    settings.CONNECTED_GROUP_NAME,
+                    self.channel_name
+                )
                 deleteProject(text_data_json)
             if "newProject" in text_data:
                 newProject(text_data_json)
