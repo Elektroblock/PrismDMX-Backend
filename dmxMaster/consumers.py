@@ -6,26 +6,31 @@ from channels.generic.websocket import WebsocketConsumer
 from asgiref.sync import async_to_sync
 
 from django.conf import settings
+
+from prismdmx.settings import MIXER_GROUP_NAME
 from .models import Fixture, Template, Mixer
 
 from dmxMaster.comunicationHelper import getAllFixturesAndTemplates, addFixture, editFixture, deleteFixture, setProject, \
     deleteProject, newProject
 
+
 #OVERVIEW_GROUP_NAME = "OVERVIEWGroup"
 #CONNECTED_GROUP_NAME = "CONNECTEDGroup"
 def broadcast(content, group):
+    if type(content) is json:
+        content = json.dumps(content)
     channel_layer = channels.layers.get_channel_layer()
     async_to_sync(channel_layer.group_send)(
         group, {
             "type": 'new_content',
-            "content": json.dumps(content),
+            "content": content,
         })
-
 
 
 def push_all_data():
     broadcast(getAllFixturesAndTemplates(False), settings.CONNECTED_GROUP_NAME)
     broadcast(getAllFixturesAndTemplates(True), settings.OVERVIEW_GROUP_NAME)
+
 
 class ChatConsumer(WebsocketConsumer):
     def connect(self):
@@ -53,8 +58,10 @@ class ChatConsumer(WebsocketConsumer):
         self.send(event['content'])
 
     def receive(self, text_data):
-        print(text_data)
-        if "test" == text_data:
+
+        #print(text_data)
+        if  text_data.startswith('!'):
+            broadcast(text_data.replace('!', '', 1), MIXER_GROUP_NAME)
             #broadcast_content("getAllFixturesAndTemplates()")
             return
 
@@ -85,7 +92,8 @@ class ChatConsumer(WebsocketConsumer):
                         self.channel_name
                     )
                 else:
-                    self.send('{"fixtureTemplates": [], "fixtures": [], "fixtureGroups": [],"mixer": {"color": "#000000", "mixerType": "na", "isMixerAvailable": "false", "pages": []},"project": {"name": "naa", "internalID": "naa"}}')
+                    self.send(
+                        '{"fixtureTemplates": [], "fixtures": [], "fixtureGroups": [],"mixer": {"color": "#000000", "mixerType": "na", "isMixerAvailable": "false", "pages": []},"project": {"name": "naa", "internalID": "naa"}}')
 
             if "deleteProject" in text_data:
                 async_to_sync(self.channel_layer.group_add)(
@@ -105,4 +113,38 @@ class ChatConsumer(WebsocketConsumer):
 
         except ValueError as e:
             self.send("NO VALID JSON")
+            return
+
+
+class MixerConsumer(WebsocketConsumer):
+    def connect(self):
+        async_to_sync(self.channel_layer.group_add)(
+            settings.MIXER_GROUP_NAME,
+            self.channel_name
+        )
+
+        self.accept()
+
+        self.send("HI!")
+
+    def disconnect(self, close_code):
+        # Leave room group asdasdasd
+        async_to_sync(self.channel_layer.group_discard)(
+            settings.MIXER_GROUP_NAME,
+            self.channel_name
+        )
+
+    def new_content(self, event):
+        self.send(event['content'])
+    def receive(self, text_data):
+        print(text_data)
+
+        try:
+            text_data_json = json.loads(text_data)
+
+
+
+
+        except ValueError as e:
+           # self.send("NO VALID JSON")
             return
