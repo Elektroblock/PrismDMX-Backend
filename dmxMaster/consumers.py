@@ -1,10 +1,11 @@
 # chat/consumers.py
 import json
+import string
 
 import channels.layers
 from channels.generic.websocket import WebsocketConsumer
 from asgiref.sync import async_to_sync
-
+from dmxMaster.comunicationHelper import mixerOnline, set_mixer_online, addPagesIfNotExisting, newPage
 from django.conf import settings
 
 from prismdmx.settings import MIXER_GROUP_NAME
@@ -17,7 +18,8 @@ from dmxMaster.comunicationHelper import getAllFixturesAndTemplates, addFixture,
 #OVERVIEW_GROUP_NAME = "OVERVIEWGroup"
 #CONNECTED_GROUP_NAME = "CONNECTEDGroup"
 def broadcast(content, group):
-    if type(content) is json:
+    if type(content) is not string:
+        print("notString")
         content = json.dumps(content)
     channel_layer = channels.layers.get_channel_layer()
     async_to_sync(channel_layer.group_send)(
@@ -34,6 +36,7 @@ def push_all_data():
 
 class ChatConsumer(WebsocketConsumer):
     def connect(self):
+
         async_to_sync(self.channel_layer.group_add)(
             settings.OVERVIEW_GROUP_NAME,
             self.channel_name
@@ -59,7 +62,7 @@ class ChatConsumer(WebsocketConsumer):
 
     def receive(self, text_data):
 
-        #print(text_data)
+        print(text_data)
         if  text_data.startswith('!'):
             broadcast(text_data.replace('!', '', 1), MIXER_GROUP_NAME)
             #broadcast_content("getAllFixturesAndTemplates()")
@@ -82,6 +85,7 @@ class ChatConsumer(WebsocketConsumer):
             if "deleteFixture" in text_data:
                 deleteFixture(text_data_json)
             if "setProject" in text_data:
+
                 if setProject(text_data_json):
                     async_to_sync(self.channel_layer.group_add)(
                         settings.CONNECTED_GROUP_NAME,
@@ -91,6 +95,7 @@ class ChatConsumer(WebsocketConsumer):
                         settings.OVERVIEW_GROUP_NAME,
                         self.channel_name
                     )
+                    addPagesIfNotExisting()
                 else:
                     self.send(
                         '{"fixtureTemplates": [], "fixtures": [], "fixtureGroups": [],"mixer": {"color": "#000000", "mixerType": "na", "isMixerAvailable": "false", "pages": []},"project": {"name": "naa", "internalID": "naa"}}')
@@ -107,6 +112,8 @@ class ChatConsumer(WebsocketConsumer):
                 deleteProject(text_data_json)
             if "newProject" in text_data:
                 newProject(text_data_json)
+            if "newPage" in text_data:
+                newPage()
 
             push_all_data()
 
@@ -126,6 +133,8 @@ class MixerConsumer(WebsocketConsumer):
         self.accept()
 
         self.send("HI!")
+        set_mixer_online(True)
+
 
     def disconnect(self, close_code):
         # Leave room group asdasdasd
@@ -133,6 +142,7 @@ class MixerConsumer(WebsocketConsumer):
             settings.MIXER_GROUP_NAME,
             self.channel_name
         )
+        set_mixer_online(False)
 
     def new_content(self, event):
         self.send(event['content'])

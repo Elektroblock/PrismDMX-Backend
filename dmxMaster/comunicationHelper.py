@@ -1,4 +1,4 @@
-from .models import TemplateChannel
+from .models import MixerPage, MixerFader
 from .models import Template
 from .models import Channel
 from .models import Fixture, Project, Mixer
@@ -6,7 +6,22 @@ import json
 import random
 
 loadedProject = 0
+mixerOnline = False
+
+
+
 #test
+
+
+def set_mixer_online(online):
+    global mixerOnline
+    mixerOnline = online
+
+
+def get_mixer_online():
+    global mixerOnline
+    return mixerOnline
+
 
 def getAllFixturesAndTemplates(newConnection):
     global loadedProject
@@ -31,6 +46,7 @@ def getAllFixturesAndTemplates(newConnection):
 def addFixture(json):
     try:
         global loadedProject
+        print(loadedProject)
         project = Project.objects.get(id=loadedProject)
         # print(json["id"])
         fixture = Fixture(project=project, fixture_name=json["newFixture"]["fixture"]["name"],
@@ -71,6 +87,7 @@ def editFixture(json):
     except:
         return
 
+
 def deleteFixture(json):
     fixture = Fixture.objects.get(id=int(json["deleteFixture"]["internalID"]))
     fixture.delete()
@@ -80,7 +97,9 @@ def setProject(json):
     try:
         project = Project.objects.get(id=int(json["setProject"]["project"]["internalID"]))
         global loadedProject
+        print(loadedProject)
         loadedProject = int(json["setProject"]["project"]["internalID"])
+        print(loadedProject)
         return True
     except:
         return False
@@ -104,5 +123,41 @@ def newProject(json):
     project.save()
     mixer = Mixer(project=project, color="ffffff", mixerUniqueName="mainMixer", mixerType="5")  # change to 0 later
     mixer.save()
+
     #global loadedProject
     #loadedProject = project.id
+
+
+def addPagesIfNotExisting():
+    try:
+
+        global loadedProject
+        print(loadedProject)
+        project = Project.objects.get(id=loadedProject)
+    except:
+        print("Error")
+        return
+    mixer = project.mixer_set.all()[0]
+    pages = mixer.mixerpage_set.all()
+    if len(pages) == 0:
+        mixer_page = MixerPage(mixer=mixer, pageID=0)  # change to 0 later
+        mixer_page.save()
+        for number in range(1, 6):
+            print("asd")
+            fader = MixerFader(mixerPage=mixer_page, name=str(number), color="ffffff", isTouched="false", value="0",
+                               assignedID=-1, assignedType="")
+            fader.save()
+
+
+
+def newPage():
+    global loadedProject
+    project = Project.objects.get(id=loadedProject)
+    mixer = project.mixer_set.all()[0]
+    pages = mixer.mixerpage_set.all()
+    mixer_page = MixerPage(mixer=mixer, pageID=len(pages))  # change to 0 later
+    mixer_page.save()
+    for number in range(1, 5):
+        fader = MixerFader(mixerPage=page, name=str(number), color="ffffff", isTouched="false", value="0",
+                           assignedID=-1, assignedType="")
+        fader.save()

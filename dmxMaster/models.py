@@ -1,6 +1,8 @@
 from django.db import models
 import json
 
+#from dmxMaster.comunicationHelper import get_mixer_online
+
 
 # Create your models here.
 
@@ -169,7 +171,7 @@ class Mixer(models.Model):
         pages = self.mixerpage_set.all()
 
         json = {
-            "color": "0x"+ self.color,
+            "color": "0x" + self.color,
             "mixerType": self.mixerType,
             "isMixerAvailable": "true",
             "pages": [],
