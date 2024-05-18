@@ -1,39 +1,44 @@
 from .models import MixerPage, MixerFader
 from .models import Template
 from .models import Channel
-from .models import Fixture, Project, Mixer
+from .models import Fixture, Project, Mixer, Settings
 import json
 import random
 
-loadedProject = 0
-mixerOnline = False
+
+
+def set_loaded_project(projectID):
+    projectIDSetting = Project.objects.get(key="loadedProject")
+    projectIDSetting.value = str(projectID)
+
+def get_loaded_project():
+    projectIDSetting = Project.objects.get(key="loadedProject")
+    return int(projectIDSetting.value)
 
 
 
-#test
+
+#testasd
 
 
 def set_mixer_online(online):
-    global mixerOnline
-    mixerOnline = online
+    mixer_online_setting = Project.objects.get(key="mixerOnline")
+    mixer_online_setting.value = str(online)
 
 
 def get_mixer_online():
-    global mixerOnline
-    return mixerOnline
-
+    return Project.objects.get(key="mixerOnline").value
 
 def getAllFixturesAndTemplates(newConnection):
-    global loadedProject
     packageJson = {"availableProjects": []}
 
     allProjects = Project.objects.all()
 
     for x in allProjects:
-        packageJson["availableProjects"].append(x.generateJson(loadedProject))
+        packageJson["availableProjects"].append(x.generateJson(get_loaded_project()))
 
-    if loadedProject > 0 and not newConnection:
-        project = Project.objects.get(id=loadedProject)
+    if get_loaded_project() > 0 and not newConnection:
+        project = Project.objects.get(id=get_loaded_project())
         packageJson.update(project.generateFullJson())
     else:
         packageJson.update({"fixtureTemplates": [], "fixtures": [], "fixtureGroups": [],
@@ -45,9 +50,8 @@ def getAllFixturesAndTemplates(newConnection):
 
 def addFixture(json):
     try:
-        global loadedProject
-        print(loadedProject)
-        project = Project.objects.get(id=loadedProject)
+        print(get_loaded_project())
+        project = Project.objects.get(id=get_loaded_project())
         # print(json["id"])
         fixture = Fixture(project=project, fixture_name=json["newFixture"]["fixture"]["name"],
                           fixture_start=json["newFixture"]["fixture"]["startChannel"])
@@ -96,10 +100,9 @@ def deleteFixture(json):
 def setProject(json):
     try:
         project = Project.objects.get(id=int(json["setProject"]["project"]["internalID"]))
-        global loadedProject
-        print(loadedProject)
-        loadedProject = int(json["setProject"]["project"]["internalID"])
-        print(loadedProject)
+        print(get_loaded_project())
+        set_loaded_project(int(json["setProject"]["project"]["internalID"]))
+        print(get_loaded_project())
         return True
     except:
         return False
@@ -107,11 +110,10 @@ def setProject(json):
 
 def deleteProject(json):
     try:
-        global loadedProject
         project = Project.objects.get(id=int(json["deleteProject"]["project"]["internalID"]))
         project.delete()
-        if loadedProject == int(json["deleteProject"]["project"]["internalID"]):
-            loadedProject = 0
+        if get_loaded_project() == int(json["deleteProject"]["project"]["internalID"]):
+            set_loaded_project(0)
     except:
         return
 
@@ -130,10 +132,8 @@ def newProject(json):
 
 def addPagesIfNotExisting():
     try:
-
-        global loadedProject
-        print(loadedProject)
-        project = Project.objects.get(id=loadedProject)
+        print(get_loaded_project())
+        project = Project.objects.get(id=get_loaded_project())
     except:
         print("Error")
         return
@@ -151,8 +151,7 @@ def addPagesIfNotExisting():
 
 
 def newPage():
-    global loadedProject
-    project = Project.objects.get(id=loadedProject)
+    project = Project.objects.get(id=get_loaded_project())
     mixer = project.mixer_set.all()[0]
     pages = mixer.mixerpage_set.all()
     mixer_page = MixerPage(mixer=mixer, pageID=len(pages))  # change to 0 later
@@ -161,3 +160,9 @@ def newPage():
         fader = MixerFader(mixerPage=page, name=str(number), color="ffffff", isTouched="false", value="0",
                            assignedID=-1, assignedType="")
         fader.save()
+
+def deletePage():
+    page = MixerPage.objects.get(id=int(json["deletePage"]))
+    page.delete()
+
+

@@ -5,7 +5,7 @@ import string
 import channels.layers
 from channels.generic.websocket import WebsocketConsumer
 from asgiref.sync import async_to_sync
-from dmxMaster.comunicationHelper import mixerOnline, set_mixer_online, addPagesIfNotExisting, newPage
+from dmxMaster.comunicationHelper import set_mixer_online, addPagesIfNotExisting, newPage
 from django.conf import settings
 
 from prismdmx.settings import MIXER_GROUP_NAME
@@ -114,6 +114,8 @@ class ChatConsumer(WebsocketConsumer):
                 newProject(text_data_json)
             if "newPage" in text_data:
                 newPage()
+            if "deletePage" in text_data:
+                deletePage(json)
 
             push_all_data()
 

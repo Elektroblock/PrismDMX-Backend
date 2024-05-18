@@ -257,3 +257,9 @@ class MixerFader(models.Model):
             "assignedType": self.assignedType,
         }
         return json
+
+class Settings(models.Model):
+    key = models.CharField(max_length=200)
+    value = models.CharField(max_length=200)
+    def __str__(self):
+        return self.key + " : " + self.value
