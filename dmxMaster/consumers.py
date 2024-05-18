@@ -116,6 +116,8 @@ class ChatConsumer(WebsocketConsumer):
                 newPage()
             if "deletePage" in text_data:
                 deletePage(json)
+            if "editMixerFader" in text_data:
+                editFader(json)
 
             push_all_data()
 

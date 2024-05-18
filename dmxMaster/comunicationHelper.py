@@ -163,6 +163,16 @@ def newPage():
                            assignedID=-1, assignedType="")
         fader.save()
 
+
+def editFader(json):
+    fader = MixerFader.objects.get(id=int(json["editMixerFader"]["fader"]["id"]))
+    fader.name = json["editMixerFader"]["fader"]["name"]
+    fader.color = json["editMixerFader"]["fader"]["color"]
+    fader.assignedType = str(json["editMixerFader"]["fader"]["assignedType"]).replace("#", "")
+    fader.assignedID = int(json["editMixerFader"]["fader"]["assignedID"])
+    fader.save()
+
+
 def deletePage():
     page = MixerPage.objects.get(id=int(json["deletePage"]))
     page.delete()
