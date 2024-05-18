@@ -8,11 +8,11 @@ import random
 
 
 def set_loaded_project(projectID):
-    projectIDSetting = Project.objects.get(key="loadedProject")
+    projectIDSetting = Settings.objects.get(key="loadedProject")
     projectIDSetting.value = str(projectID)
 
 def get_loaded_project():
-    projectIDSetting = Project.objects.get(key="loadedProject")
+    projectIDSetting = Settings.objects.get(key="loadedProject")
     return int(projectIDSetting.value)
 
 
