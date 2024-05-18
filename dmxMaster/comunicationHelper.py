@@ -159,7 +159,7 @@ def newPage():
     mixer_page = MixerPage(mixer=mixer, pageID=len(pages))  # change to 0 later
     mixer_page.save()
     for number in range(1, 5):
-        fader = MixerFader(mixerPage=page, name=str(number), color="ffffff", isTouched="false", value="0",
+        fader = MixerFader(mixerPage=mixer_page, name=str(number), color="ffffff", isTouched="false", value="0",
                            assignedID=-1, assignedType="")
         fader.save()
 
