@@ -10,6 +10,7 @@ import random
 def set_loaded_project(projectID):
     projectIDSetting = Settings.objects.get(key="loadedProject")
     projectIDSetting.value = str(projectID)
+    projectIDSetting.save()
 
 def get_loaded_project():
     projectIDSetting = Settings.objects.get(key="loadedProject")
@@ -24,6 +25,7 @@ def get_loaded_project():
 def set_mixer_online(online):
     mixer_online_setting = Project.objects.get(key="mixerOnline")
     mixer_online_setting.value = str(online)
+    mixer_online_setting.save()
 
 
 def get_mixer_online():
