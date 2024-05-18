@@ -12,7 +12,7 @@ from prismdmx.settings import MIXER_GROUP_NAME
 from .models import Fixture, Template, Mixer
 
 from dmxMaster.comunicationHelper import getAllFixturesAndTemplates, addFixture, editFixture, deleteFixture, setProject, \
-    deleteProject, newProject
+    deleteProject, newProject, editFader
 
 
 #OVERVIEW_GROUP_NAME = "OVERVIEWGroup"
