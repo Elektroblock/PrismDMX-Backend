@@ -195,6 +195,7 @@ class MixerPage(models.Model):
         buttons = self.mixerbutton_set.all()
 
         json = {
+            "id": str(self.id),
             "num": str(self.pageID),
             "faders": [],
             "buttons": [],
@@ -222,6 +223,7 @@ class MixerButton(models.Model):
         # print("json--MixerButton")
 
         json = {
+            "id": str(self.id),
             "name": self.name,
             "color": self.color,
             "isPressed": self.isPressed,
@@ -246,6 +248,7 @@ class MixerFader(models.Model):
     def generateJson(self):
         # print("json--MixerFader")
         json = {
+            "id": str(self.id),
             "name": self.name,
             "color": self.color,
             "isTouched": self.isTouched,
