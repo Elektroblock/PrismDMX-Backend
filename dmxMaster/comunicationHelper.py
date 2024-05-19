@@ -4,32 +4,9 @@ from .models import Channel
 from .models import Fixture, Project, Mixer, Settings
 import json
 import random
+from dmxMaster.databaseHelper import set_loaded_project, get_loaded_project, set_mixer_page, get_mixer_page, \
+    get_loaded_project, set_setting, get_setting, set_mixer_online, get_mixer_online
 
-
-
-def set_loaded_project(projectID):
-    projectIDSetting = Settings.objects.get(key="loadedProject")
-    projectIDSetting.value = str(projectID)
-    projectIDSetting.save()
-
-def get_loaded_project():
-    projectIDSetting = Settings.objects.get(key="loadedProject")
-    return int(projectIDSetting.value)
-
-
-
-
-#testasd
-
-
-def set_mixer_online(online):
-    mixer_online_setting = Project.objects.get(key="mixerOnline")
-    mixer_online_setting.value = str(online)
-    mixer_online_setting.save()
-
-
-def get_mixer_online():
-    return Project.objects.get(key="mixerOnline").value
 
 def getAllFixturesAndTemplates(newConnection):
     packageJson = {"availableProjects": []}
@@ -128,11 +105,11 @@ def newProject(json):
     mixer = Mixer(project=project, color="ffffff", mixerUniqueName="mainMixer", mixerType="5")  # change to 0 later
     mixer.save()
 
-    #global loadedProject
-    #loadedProject = project.id
+    # global loadedProject
+    # loadedProject = project.id
 
 
-def addPagesIfNotExisting():
+def addPagesIfNotExisting(): # also set active Page to first page
     try:
         print(get_loaded_project())
         project = Project.objects.get(id=get_loaded_project())
@@ -141,6 +118,7 @@ def addPagesIfNotExisting():
         return
     mixer = project.mixer_set.all()[0]
     pages = mixer.mixerpage_set.all()
+    set_mixer_page(pages[0].id)
     if len(pages) == 0:
         mixer_page = MixerPage(mixer=mixer, pageID=0)  # change to 0 later
         mixer_page.save()
@@ -149,7 +127,6 @@ def addPagesIfNotExisting():
             fader = MixerFader(mixerPage=mixer_page, name=str(number), color="ffffff", isTouched="false", value="0",
                                assignedID=-1, assignedType="")
             fader.save()
-
 
 
 def newPage():
@@ -173,8 +150,14 @@ def editFader(json):
     fader.save()
 
 
-def deletePage():
-    page = MixerPage.objects.get(id=int(json["deletePage"]))
+def deletePage(json_data):
+    print(json_data)
+    page = MixerPage.objects.get(id=int(json_data["deletePage"]))
     page.delete()
 
-
+def setMixerColor(json_data):
+    print(json_data)
+    project = Project.objects.get(id=get_loaded_project())
+    mixer = project.mixer_set.all()[0]
+    mixer.color = json_data["setMixerColor"].replace("#","")
+    mixer.save()

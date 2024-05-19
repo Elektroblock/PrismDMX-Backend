@@ -173,7 +173,7 @@ class Mixer(models.Model):
         json = {
             "color": "#" + self.color,
             "mixerType": self.mixerType,
-            "isMixerAvailable": "true",
+            "isMixerAvailable": Settings.objects.get(key="mixerOnline").value,
             "pages": [],
         }
         for page in pages:
