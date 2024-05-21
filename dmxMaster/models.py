@@ -9,7 +9,7 @@ import json
 
 class Project(models.Model):
     project_name = models.CharField(max_length=200)
-
+    setup = models.CharField(max_length=200, default="false")
     def __str__(self):
         return self.project_name + " (" + str(self.id) + ")"
 
@@ -29,7 +29,7 @@ class Project(models.Model):
     def generateFullJson(self):
         allMixers = self.mixer_set.all()
 
-        projectJson = {"fixtureTemplates": [], "fixtures": [], "fixtureGroups": [],
+        projectJson = {"setup" : self.setup, "fixtureTemplates": [], "fixtures": [], "fixtureGroups": [],
                        "mixer": allMixers[0].generateJson(), "project": self.generateJson(0)}
 
         allFixtures = self.fixture_set.all()
@@ -187,7 +187,7 @@ class MixerPage(models.Model):
     pageID = models.IntegerField(default=0)
 
     def __str__(self):
-        return "Project: " + self.mixer.project.project_name + " | Page: " + str(self.pageID) + ""
+        return "(" + str(self.id )+ ") Project: " + self.mixer.project.project_name + " | Page: " + str(self.pageID) + ""
 
     def generateJson(self):
         # print("json--MixerPage")

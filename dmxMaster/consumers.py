@@ -9,7 +9,7 @@ from dmxMaster.comunicationHelper import set_mixer_online, addPagesIfNotExisting
 from django.conf import settings
 
 from prismdmx.settings import MIXER_GROUP_NAME
-from .databaseHelper import get_loaded_project, get_mixer_page
+from .databaseHelper import get_loaded_project, get_mixer_page, set_mixer_page
 from .models import Fixture, Template, Mixer, Project, MixerPage
 
 from dmxMaster.comunicationHelper import getAllFixturesAndTemplates, addFixture, editFixture, deleteFixture, setProject, \
@@ -20,7 +20,7 @@ from dmxMaster.comunicationHelper import getAllFixturesAndTemplates, addFixture,
 #CONNECTED_GROUP_NAME = "CONNECTEDGroup"
 def broadcast(content, group):
     if type(content) is not str:
-        print("notString")
+        # print("notString")
         content = json.dumps(content)
     print(content)
     channel_layer = channels.layers.get_channel_layer()
@@ -45,7 +45,7 @@ class ChatConsumer(WebsocketConsumer):
         self.send(json.dumps(getAllFixturesAndTemplates(True)))
 
     def disconnect(self, close_code):
-        async_to_sync(self.channel_layer.group_discard)(#langsam
+        async_to_sync(self.channel_layer.group_discard)(  #langsam
             settings.OVERVIEW_GROUP_NAME,
             self.channel_name
         )
@@ -55,12 +55,13 @@ class ChatConsumer(WebsocketConsumer):
         )
 
     def new_content(self, event):
-         self.send(event['content'])
+        self.send(event['content'])
 
     def receive(self, text_data):
         print(text_data)
 
-        if  text_data.startswith('!'):
+        if text_data.startswith('!'
+                                ''):
             broadcast(text_data.replace('!', '', 1), MIXER_GROUP_NAME)
             #broadcast_content("getAllFixturesAndTemplates()")
             return
@@ -93,8 +94,9 @@ class ChatConsumer(WebsocketConsumer):
                         self.channel_name
                     )
                     addPagesIfNotExisting()
+                    updateDisplayText()
                 else:
-                     self.send(
+                    self.send(
                         '{"fixtureTemplates": [], "fixtures": [], "fixtureGroups": [],"mixer": {"color": "#000000", "mixerType": "na", "isMixerAvailable": "false", "pages": []},"project": {"name": "naa", "internalID": "naa"}}')
 
             if "deleteProject" in text_data:
@@ -114,14 +116,14 @@ class ChatConsumer(WebsocketConsumer):
             if "deletePage" in text_data:
                 deletePage(text_data_json)
             if "deletePage" in text_data:
-                deletePage(text_datas_json)
+                deletePage(text_data_json)
+                updateDisplayText()
             if "editMixerFader" in text_data:
                 editFader(text_data_json)
                 updateDisplayText()
             if "setMixerColor" in text_data:
                 setMixerColor(text_data_json)
                 updateMixerColor()
-
 
             push_all_data()
 
@@ -140,12 +142,10 @@ class MixerConsumer(WebsocketConsumer):
 
         self.accept()
         #4 Prefix, 2 Display, ... contend
-        self.send("disp01 ")
         set_mixer_online(True)
         push_all_data()
         updateDisplayText()
         updateMixerColor()
-
 
     def disconnect(self, close_code):
         # Leave room group asdasdasd
@@ -158,8 +158,52 @@ class MixerConsumer(WebsocketConsumer):
 
     def new_content(self, event):
         self.send(event['content'])
+
     def receive(self, text_data):
         print(text_data)
+
+
+
+        if text_data == "setup":
+            project = Project.objects.get(id=get_loaded_project())
+            if project.setup=="true":
+                project.setup = "false"
+            else:
+                project.setup="true"
+            project.save()
+            push_all_data()
+
+        if text_data == "pageUP":
+            project = Project.objects.get(id=get_loaded_project())
+            mixer = project.mixer_set.all()[0]
+            pages = mixer.mixerpage_set.all()
+            loaded_page = get_mixer_page()
+            index = 0
+            current_index = 0
+            for page in pages:
+                #print(loaded_page)
+                #print(str(page.id) + "/" + str(loaded_page))
+                if str(page.id) == str(loaded_page):
+                    current_index = index + 1
+
+                index += 1
+            if current_index < len(pages):
+                set_mixer_page(pages[current_index].id)
+                updateDisplayText()
+        if text_data == "pageDOWN":
+            project = Project.objects.get(id=get_loaded_project())
+            mixer = project.mixer_set.all()[0]
+            pages = mixer.mixerpage_set.all()
+            loaded_page = get_mixer_page()
+            index = 0
+            current_index = 0
+            for page in pages:
+                if str(page.id) == str(loaded_page):
+                    current_index = index - 1
+                index += 1
+            if current_index >= 0:
+                set_mixer_page(pages[current_index].id)
+                updateDisplayText()
 
         try:
             text_data_json = json.loads(text_data)
@@ -168,25 +212,37 @@ class MixerConsumer(WebsocketConsumer):
 
 
         except ValueError as e:
-           # self.send("NO VALID JSON")
+            # self.send("NO VALID JSON")
             return
-
 
 
 #MixerHelper
 
 def updateDisplayText():
-    mixer_page = MixerPage.objects.get(id=get_mixer_page())
+    try:
+        project = Project.objects.get(id=get_loaded_project())
+        mixer = project.mixer_set.all()[0]
+        mixer_page = mixer.mixerpage_set.all().get(id=get_mixer_page())
+    except:
+        pages = mixer.mixerpage_set.all()
+        set_mixer_page(pages[0].id)
+        return
     faders = mixer_page.mixerfader_set.all()
     index = 0
     for fader in faders:
-        broadcast(str("disp"+ str(index) + fader.name), MIXER_GROUP_NAME)
+        broadcast(str("disp" + str(index) + fader.name), MIXER_GROUP_NAME)
+        hex_color = fader.color.replace("#", "")
+        color = tuple(int(hex_color[i:i + 2], 16) for i in (0, 2, 4))
+        broadcast("mcol" + str(index + 1) + "{:03d}".format(color[0], ) + "{:03d}".format(color[1], ) + "{:03d}".format(
+            color[2], ), MIXER_GROUP_NAME)
         index += 1
+
+
 def updateMixerColor():
     project = Project.objects.get(id=get_loaded_project())
     mixer = project.mixer_set.all()[0].color
 
-    color = tuple(int(mixer[i:i+2], 16) for i in (0, 2, 4))
+    color = tuple(int(mixer[i:i + 2], 16) for i in (0, 2, 4))
     broadcast(str("colr" + str(color[0])), MIXER_GROUP_NAME)
     broadcast(str("colg" + str(color[1])), MIXER_GROUP_NAME)
     broadcast(str("colb" + str(color[2])), MIXER_GROUP_NAME)

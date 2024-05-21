@@ -1,4 +1,4 @@
-from .models import Settings
+from .models import Settings, Project
 
 
 def set_loaded_project(projectID):
@@ -42,6 +42,11 @@ def set_mixer_online(online):
     mixer_online_setting = Settings.objects.get(key="mixerOnline")
     mixer_online_setting.value = str(online)
     mixer_online_setting.save()
+    if not online:
+        project = Project.objects.get(id=get_loaded_project())
+        project.setup = "false"
+        project.save()
+
 
 
 def get_mixer_online():

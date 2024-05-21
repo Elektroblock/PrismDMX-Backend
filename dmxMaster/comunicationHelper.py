@@ -22,7 +22,7 @@ def getAllFixturesAndTemplates(newConnection):
     else:
         packageJson.update({"fixtureTemplates": [], "fixtures": [], "fixtureGroups": [],
                             "mixer": {"color": "#000000", "mixerType": "na", "isMixerAvailable": "false", "pages": []},
-                            "project": {"name": "na", "internalID": "na"}})
+                            "project": {"name": "na", "internalID": "na"}, "setup": "false"})
 
     return packageJson
 
@@ -109,7 +109,7 @@ def newProject(json):
     # loadedProject = project.id
 
 
-def addPagesIfNotExisting(): # also set active Page to first page
+def addPagesIfNotExisting():  # also set active Page to first page
     try:
         print(get_loaded_project())
         project = Project.objects.get(id=get_loaded_project())
@@ -118,7 +118,7 @@ def addPagesIfNotExisting(): # also set active Page to first page
         return
     mixer = project.mixer_set.all()[0]
     pages = mixer.mixerpage_set.all()
-    set_mixer_page(pages[0].id)
+
     if len(pages) == 0:
         mixer_page = MixerPage(mixer=mixer, pageID=0)  # change to 0 later
         mixer_page.save()
@@ -127,6 +127,8 @@ def addPagesIfNotExisting(): # also set active Page to first page
             fader = MixerFader(mixerPage=mixer_page, name=str(number), color="ffffff", isTouched="false", value="0",
                                assignedID=-1, assignedType="")
             fader.save()
+
+    set_mixer_page(pages[0].id)
 
 
 def newPage():
@@ -151,13 +153,22 @@ def editFader(json):
 
 
 def deletePage(json_data):
-    print(json_data)
-    page = MixerPage.objects.get(id=int(json_data["deletePage"]))
-    page.delete()
+    print()
+    try:
+        page = MixerPage.objects.get(id=int(json_data["deletePage"]))
+        page.delete()
+        if json_data["deletePage"] == get_mixer_page():
+            project = Project.objects.get(id=get_loaded_project())
+            mixer = project.mixer_set.all()[0]
+            pages = mixer.mixerpage_set.all()
+            set_mixer_page(pages[0].id)
+    except:
+        return
+
 
 def setMixerColor(json_data):
     print(json_data)
     project = Project.objects.get(id=get_loaded_project())
     mixer = project.mixer_set.all()[0]
-    mixer.color = json_data["setMixerColor"].replace("#","")
+    mixer.color = json_data["setMixerColor"].replace("#", "")
     mixer.save()
