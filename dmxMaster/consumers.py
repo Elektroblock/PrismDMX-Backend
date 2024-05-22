@@ -3,7 +3,7 @@ import json
 import string
 
 import channels.layers
-from channels.generic.websocket import AsyncWebsocketConsumer, WebsocketConsumer
+from channels.generic.websocket import AsyncWebsocketConsumer, WebsocketConsumer, AsyncWebsocketConsumer
 from asgiref.sync import async_to_sync, sync_to_async
 from dmxMaster.comunicationHelper import set_mixer_online, addPagesIfNotExisting, newPage
 from django.conf import settings
@@ -16,8 +16,8 @@ from dmxMaster.comunicationHelper import getAllFixturesAndTemplates, addFixture,
     deleteProject, newProject, editFader, deletePage, setMixerColor
 
 
-#OVERVIEW_GROUP_NAME = "OVERVIEWGroup"
-#CONNECTED_GROUP_NAME = "CONNECTEDGroup"
+# OVERVIEW_GROUP_NAME = "OVERVIEWGroup"
+# CONNECTED_GROUP_NAME = "CONNECTEDGroup"
 def broadcast(content, group):
     if type(content) is not str:
         # print("notString")
@@ -36,34 +36,34 @@ def push_all_data():
     broadcast(getAllFixturesAndTemplates(True), settings.OVERVIEW_GROUP_NAME)
 
 
-class ChatConsumer(WebsocketConsumer):
-    def connect(self):
+class ChatConsumer(AsyncWebsocketConsumer):
+    async def connect(self):
 
-        self.channel_layer.group_add(settings.OVERVIEW_GROUP_NAME, self.channel_name)
+        await self.channel_layer.group_add(settings.OVERVIEW_GROUP_NAME, self.channel_name)
 
-        self.accept()
-        self.send(json.dumps(getAllFixturesAndTemplates(True)))
+        await self.accept()
+        await self.send(json.dumps(await sync_to_async(getAllFixturesAndTemplates)(True)))
 
-    def disconnect(self, close_code):
-        async_to_sync(self.channel_layer.group_discard)(  #langsam
+    async def disconnect(self, close_code):
+        await self.channel_layer.group_discard(  # langsam
             settings.OVERVIEW_GROUP_NAME,
             self.channel_name
         )
-        async_to_sync(self.channel_layer.group_discard)(
+        await self.channel_layer.group_discard(
             settings.CONNECTED_GROUP_NAME,
             self.channel_name
         )
 
-    def new_content(self, event):
-        self.send(event['content'])
+    async def new_content(self, event):
+        await self.send(event['content'])
 
-    def receive(self, text_data):
+    async def receive(self, text_data):
         print(text_data)
 
         if text_data.startswith('!'
                                 ''):
             broadcast(text_data.replace('!', '', 1), MIXER_GROUP_NAME)
-            #broadcast_content("getAllFixturesAndTemplates()")
+            # broadcast_content("getAllFixturesAndTemplates()")
             return
 
         if "test2" == text_data:
@@ -77,146 +77,122 @@ class ChatConsumer(WebsocketConsumer):
         try:
             text_data_json = json.loads(text_data)
             if "newFixture" in text_data:
-                addFixture(text_data_json)
-            if "editFixture" in text_data:
-                editFixture(text_data_json)
-            if "deleteFixture" in text_data:
-                deleteFixture(text_data_json)
-            if "setProject" in text_data:
+                await sync_to_async(addFixture)(text_data_json)
+            elif "editFixture" in text_data:
+                await sync_to_async(editFixture)(text_data_json)
+            elif "deleteFixture" in text_data:
+                await sync_to_async(deleteFixture)(text_data_json)
+            elif "setProject" in text_data:
 
-                if setProject(text_data_json):
-                    async_to_sync(self.channel_layer.group_add)(
+                if await sync_to_async(setProject)(text_data_json):
+                    await self.channel_layer.group_add(
                         settings.CONNECTED_GROUP_NAME,
                         self.channel_name
                     )
-                    async_to_sync(self.channel_layer.group_discard)(
+                    await self.channel_layer.group_discard(
                         settings.OVERVIEW_GROUP_NAME,
                         self.channel_name
                     )
-                    addPagesIfNotExisting()
-                    updateDisplayText()
+                    await sync_to_async(addPagesIfNotExisting)()
+                    await sync_to_async(updateDisplayText)()
                 else:
-                    self.send(
+                    await self.send(
                         '{"fixtureTemplates": [], "fixtures": [], "fixtureGroups": [],"mixer": {"color": "#000000", "mixerType": "na", "isMixerAvailable": "false", "pages": []},"project": {"name": "naa", "internalID": "naa"}}')
 
-            if "deleteProject" in text_data:
-                async_to_sync(self.channel_layer.group_add)(
+            elif "deleteProject" in text_data:
+                await self.channel_layer.group_add(
                     settings.OVERVIEW_GROUP_NAME,
                     self.channel_name
                 )
-                async_to_sync(self.channel_layer.group_discard)(
+                await self.channel_layer.group_discard(
                     settings.CONNECTED_GROUP_NAME,
                     self.channel_name
                 )
-                deleteProject(text_data_json)
-            if "newProject" in text_data:
-                newProject(text_data_json)
-            if "newPage" in text_data:
-                newPage()
-            if "deletePage" in text_data:
-                deletePage(text_data_json)
-            if "deletePage" in text_data:
-                deletePage(text_data_json)
-                updateDisplayText()
-            if "editMixerFader" in text_data:
-                editFader(text_data_json)
-                updateDisplayText()
-            if "setMixerColor" in text_data:
-                setMixerColor(text_data_json)
-                updateMixerColor()
+                await sync_to_async(deleteProject)(text_data_json)
+            elif "newProject" in text_data:
+                await sync_to_async(newProject)(text_data_json)
+            elif "newPage" in text_data:
+                await sync_to_async(newPage)()
+            elif "deletePage" in text_data:
+                await sync_to_async(deletePage)(text_data_json)
+            elif "deletePage" in text_data:
+                await sync_to_async(deletePage)(text_data_json)
+                await sync_to_async(updateDisplayText)()
+            elif "editMixerFader" in text_data:
+                await sync_to_async(editFader)(text_data_json)
+                await sync_to_async(updateDisplayText)()
+            elif "editMixerButton" in text_data:
+                await sync_to_async(editButton)(text_data_json)
+                await sync_to_async(updateDisplayText)()
+            elif "setMixerColor" in text_data:
+                await sync_to_async(setMixerColor)(text_data_json)
+                await sync_to_async(updateMixerColor)()
 
-            push_all_data()
+            await sync_to_async(push_all_data)()
 
 
         except ValueError as e:
-            self.send("NO VALID JSON")
+            await sync_to_async(self.send)("NO VALID JSON")
             return
 
 
-class MixerConsumer(WebsocketConsumer):
-    def connect(self):
-        async_to_sync(self.channel_layer.group_add)(
+class MixerConsumer(AsyncWebsocketConsumer):
+    async def connect(self):
+        await self.channel_layer.group_add(
             settings.MIXER_GROUP_NAME,
             self.channel_name
         )
 
-        self.accept()
-        #4 Prefix, 2 Display, ... contend
-        set_mixer_online(True)
-        push_all_data()
-        updateDisplayText()
-        updateMixerColor()
+        await self.accept()
+        # 4 Prefix, 2 Display, ... contend
+        await sync_to_async(set_mixer_online)(True)
+        await sync_to_async(push_all_data)()
+        await sync_to_async(updateDisplayText)()
+        await sync_to_async(updateMixerColor)()
 
-    def disconnect(self, close_code):
+    async def disconnect(self, close_code):
         # Leave room group asdasdasd
-        async_to_sync(self.channel_layer.group_discard)(
+        await self.channel_layer.group_discard(
             settings.MIXER_GROUP_NAME,
             self.channel_name
         )
-        set_mixer_online(False)
-        push_all_data()
+        await sync_to_async(set_mixer_online)(False)
+        await sync_to_async(push_all_data)()
 
-    def new_content(self, event):
-        self.send(event['content'])
+    async def new_content(self, event):
+        await self.send(event['content'])
 
-    def receive(self, text_data):
+    async def receive(self, text_data):
         print(text_data)
 
-
-
         if text_data == "setup":
-            project = Project.objects.get(id=get_loaded_project())
-            if project.setup=="true":
+            project = await sync_to_async(Project.objects.get)(id=await sync_to_async(get_loaded_project)())
+            if project.setup == "true":
                 project.setup = "false"
             else:
-                project.setup="true"
-            project.save()
-            push_all_data()
+                project.setup = "true"
+            await sync_to_async(project.save)()
+            await sync_to_async(push_all_data)()
+        elif text_data == "pageUP":
+            await self._change_page(1)
+        elif text_data == "pageDOWN":
+            await self._change_page(-1)
 
-        if text_data == "pageUP":
-            project = Project.objects.get(id=get_loaded_project())
-            mixer = project.mixer_set.all()[0]
-            pages = mixer.mixerpage_set.all()
-            loaded_page = get_mixer_page()
-            index = 0
-            current_index = 0
-            for page in pages:
-                #print(loaded_page)
-                #print(str(page.id) + "/" + str(loaded_page))
-                if str(page.id) == str(loaded_page):
-                    current_index = index + 1
-
-                index += 1
-            if current_index < len(pages):
-                set_mixer_page(pages[current_index].id)
-                updateDisplayText()
-        if text_data == "pageDOWN":
-            project = Project.objects.get(id=get_loaded_project())
-            mixer = project.mixer_set.all()[0]
-            pages = mixer.mixerpage_set.all()
-            loaded_page = get_mixer_page()
-            index = 0
-            current_index = 0
-            for page in pages:
-                if str(page.id) == str(loaded_page):
-                    current_index = index - 1
-                index += 1
-            if current_index >= 0:
-                set_mixer_page(pages[current_index].id)
-                updateDisplayText()
-
-        try:
-            text_data_json = json.loads(text_data)
+    async def _change_page(self, direction):
+        project_id = await sync_to_async(get_loaded_project)()
+        project = await sync_to_async(Project.objects.get)(id=project_id)
+        mixer = await sync_to_async(lambda: list(project.mixer_set.all()))()
+        pages = await sync_to_async(lambda: list(mixer[0].mixerpage_set.all()))()
+        current_page = await sync_to_async(get_mixer_page)()
+        current_index = next((i for i, p in enumerate(pages) if str(p.id) == str(current_page)), None)
+        if direction == 1 and current_index < len(pages) - 1:
+            await sync_to_async(set_mixer_page)(pages[current_index + 1].id)
+        elif direction == -1 and current_index > 0:
+            await sync_to_async(set_mixer_page)(pages[current_index - 1].id)
+        await sync_to_async(updateDisplayText)()
 
 
-
-
-        except ValueError as e:
-            # self.send("NO VALID JSON")
-            return
-
-
-#MixerHelper
+# MixerHelper
 
 def updateDisplayText():
     try:

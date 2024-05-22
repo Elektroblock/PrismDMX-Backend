@@ -127,6 +127,10 @@ def addPagesIfNotExisting():  # also set active Page to first page
             fader = MixerFader(mixerPage=mixer_page, name=str(number), color="ffffff", isTouched="false", value="0",
                                assignedID=-1, assignedType="")
             fader.save()
+            button = MixerButton(mixerPage=mixer_page, name=str(number), color="ffffff", isPressed="false",
+                                 assignedID=-1,
+                                 assignedType="")
+            button.save()
 
     set_mixer_page(pages[0].id)
 
@@ -141,6 +145,9 @@ def newPage():
         fader = MixerFader(mixerPage=mixer_page, name=str(number), color="ffffff", isTouched="false", value="0",
                            assignedID=-1, assignedType="")
         fader.save()
+        button = MixerButton(mixerPage=mixer_page, name=str(number), color="ffffff", isPressed="false", assignedID=-1,
+                             assignedType="")
+        button.save()
 
 
 def editFader(json):
@@ -150,6 +157,14 @@ def editFader(json):
     fader.assignedType = str(json["editMixerFader"]["fader"]["assignedType"]).replace("#", "")
     fader.assignedID = int(json["editMixerFader"]["fader"]["assignedID"])
     fader.save()
+
+def editButton(json):
+    button = MixerButton.objects.get(id=int(json["editMixerButton"]["button"]["id"]))
+    button.name = json["editMixerButton"]["button"]["name"]
+    button.color = json["editMixerButton"]["button"]["color"]
+    button.assignedType = str(json["editMixerButton"]["button"]["assignedType"]).replace("#", "")
+    button.assignedID = int(json["editMixerButton"]["button"]["assignedID"])
+    button.save()
 
 
 def deletePage(json_data):
