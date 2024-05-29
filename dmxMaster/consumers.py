@@ -150,11 +150,6 @@ class MixerConsumer(AsyncWebsocketConsumer):
         await sync_to_async(updateDisplayText)()
         await sync_to_async(updateMixerColor)()
 
-        for x in range(1000):
-
-            print(x)
-            if x % 20 == 0:
-                await sync_to_async(broadcast)(str("disp" + str(0) + "COUNT " + str(x)), MIXER_GROUP_NAME)
 
     async def disconnect(self, close_code):
         # Leave room group asdasdasd
