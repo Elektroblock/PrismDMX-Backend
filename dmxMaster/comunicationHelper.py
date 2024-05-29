@@ -202,7 +202,9 @@ def removeFixtureFromGroup(json_data):
     group_link.delete()
 
 def newGroup(json_data):
-    group = Group(group_name=json_data["newGroup"]["groupName"])
+    print(json_data["newGroup"]["groupName"])
+    project = Project.objects.get(id=get_loaded_project())
+    group = Group(group_name=json_data["newGroup"]["groupName"], project=project)
     group.save()
 def deleteGroup(json_data):
     group = Group.objects.get(id=int(json_data["deleteGroup"]["groupID"]))
