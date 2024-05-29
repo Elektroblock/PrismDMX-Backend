@@ -189,7 +189,6 @@ def setMixerColor(json_data):
     mixer.save()
 
 def addFixtureToGroup(json_data):
-    print(json_data)
     group = Group.objects.get(id=int(json_data["addFixtureToGroup"]["groupID"]))
     fixture = Fixture.objects.get(id=int(json_data["addFixtureToGroup"]["fixtureID"]))
     if not GroupLink.objects.filter(group=group, fixture=fixture).exists():
@@ -197,8 +196,14 @@ def addFixtureToGroup(json_data):
         group_link.save()
 
 def removeFixtureFromGroup(json_data):
-    print(json_data)
     group = Group.objects.get(id=int(json_data["removeFixtureFromGroup"]["groupID"]))
     fixture = Fixture.objects.get(id=int(json_data["removeFixtureFromGroup"]["fixtureID"]))
     group_link = GroupLink.objects.get(group=group, fixture=fixture)
     group_link.delete()
+
+def newGroup(json_data):
+    group = Group(group_name=json_data["newGroup"]["GroupName"])
+    group.save()
+def deleteGroup(json_data):
+    group = Group.objects.get(id=int(json_data["deleteGroup"]["groupID"]))
+    group.delete()

@@ -6,7 +6,7 @@ import channels.layers
 from channels.generic.websocket import AsyncWebsocketConsumer, WebsocketConsumer, AsyncWebsocketConsumer
 from asgiref.sync import async_to_sync, sync_to_async
 from dmxMaster.comunicationHelper import set_mixer_online, addPagesIfNotExisting, newPage, addFixtureToGroup, \
-    removeFixtureFromGroup, editButton
+    removeFixtureFromGroup, editButton, newGroup, deleteGroup
 from django.conf import settings
 
 from prismdmx.settings import MIXER_GROUP_NAME
@@ -135,6 +135,12 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 await sync_to_async(updateDisplayText)()
             elif "removeFixtureFromGroup" in text_data:
                 await sync_to_async(removeFixtureFromGroup)(text_data_json)
+                await sync_to_async(updateMixerColor)()
+            elif "deleteGroup" in text_data:
+                await sync_to_async(deleteGroup)(text_data_json)
+                await sync_to_async(updateMixerColor)()
+            elif "newGroup" in text_data:
+                await sync_to_async(newGroup)(text_data_json)
                 await sync_to_async(updateMixerColor)()
 
             await sync_to_async(push_all_data)()
