@@ -1,4 +1,4 @@
-from .models import MixerPage, MixerFader
+from .models import MixerPage, MixerFader, MixerButton
 from .models import Template
 from .models import Channel
 from .models import Fixture, Project, Mixer, Settings
