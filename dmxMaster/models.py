@@ -141,7 +141,7 @@ class Group(models.Model):
 
         json = {
             "name": self.group_name,
-            "groupID": self.id,
+            "groupID": str(self.id),
             "internalIDs": [],
         }
         for grouplink in grouplinks:
