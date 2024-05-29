@@ -192,8 +192,9 @@ def addFixtureToGroup(json_data):
     print(json_data)
     group = Group.objects.get(id=int(json_data["addFixtureToGroup"]["groupID"]))
     fixture = Fixture.objects.get(id=int(json_data["addFixtureToGroup"]["fixtureID"]))
-    group_link = GroupLink(group=group, fixture=fixture)
-    group_link.save()
+    if not GroupLink.objects.filter(group=group, fixture=fixture).exists():
+        group_link = GroupLink(group=group, fixture=fixture)
+        group_link.save()
 
 def removeFixtureFromGroup(json_data):
     print(json_data)
