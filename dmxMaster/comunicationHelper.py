@@ -1,4 +1,4 @@
-from .models import MixerPage, MixerFader, MixerButton
+from .models import MixerPage, MixerFader, MixerButton, GroupLink, Group
 from .models import Template
 from .models import Channel
 from .models import Fixture, Project, Mixer, Settings
@@ -187,3 +187,17 @@ def setMixerColor(json_data):
     mixer = project.mixer_set.all()[0]
     mixer.color = json_data["setMixerColor"].replace("#", "")
     mixer.save()
+
+def addFixtureToGroup(json_data):
+    print(json_data)
+    group = Group.objects.get(id=int(json_data["groupID"]))
+    fixture = Fixture.objects.get(id=int(json_data["fixtureID"]))
+    group_link = GroupLink(group=group, fixture=fixture)
+    group_link.save()
+
+def removeFixtureFromGroup(json_data):
+    print(json_data)
+    group = Group.objects.get(id=int(json_data["groupID"]))
+    fixture = Fixture.objects.get(id=int(json_data["fixtureID"]))
+    group_link = GroupLink.objects.get(group=group, fixture=fixture)
+    group_link.delete()

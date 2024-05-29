@@ -5,7 +5,8 @@ import string
 import channels.layers
 from channels.generic.websocket import AsyncWebsocketConsumer, WebsocketConsumer, AsyncWebsocketConsumer
 from asgiref.sync import async_to_sync, sync_to_async
-from dmxMaster.comunicationHelper import set_mixer_online, addPagesIfNotExisting, newPage
+from dmxMaster.comunicationHelper import set_mixer_online, addPagesIfNotExisting, newPage, addFixtureToGroup, \
+    removeFixtureFromGroup, editButton
 from django.conf import settings
 
 from prismdmx.settings import MIXER_GROUP_NAME
@@ -97,7 +98,9 @@ class ChatConsumer(AsyncWebsocketConsumer):
                     await sync_to_async(updateDisplayText)()
                 else:
                     await self.send(
-                        '{"fixtureTemplates": [], "fixtures": [], "fixtureGroups": [],"mixer": {"color": "#000000", "mixerType": "na", "isMixerAvailable": "false", "pages": []},"project": {"name": "naa", "internalID": "naa"}}')
+                        '{"fixtureTemplates": [], "fixtures": [], "fixtureGroups": [],"mixer": {"color": "#000000", '
+                        '"mixerType": "na", "isMixerAvailable": "false", "pages": []},"project": {"name": "naa", '
+                        '"internalID": "naa"}}')
 
             elif "deleteProject" in text_data:
                 await self.channel_layer.group_add(
@@ -127,6 +130,12 @@ class ChatConsumer(AsyncWebsocketConsumer):
             elif "setMixerColor" in text_data:
                 await sync_to_async(setMixerColor)(text_data_json)
                 await sync_to_async(updateMixerColor)()
+            elif "addFixtureToGroup" in text_data:
+                await sync_to_async(addFixtureToGroup)(text_data_json)
+                await sync_to_async(updateDisplayText)()
+            elif "removeFixtureFromGroup" in text_data:
+                await sync_to_async(removeFixtureFromGroup)(text_data_json)
+                await sync_to_async(updateMixerColor)()
 
             await sync_to_async(push_all_data)()
 
@@ -149,7 +158,6 @@ class MixerConsumer(AsyncWebsocketConsumer):
         await sync_to_async(push_all_data)()
         await sync_to_async(updateDisplayText)()
         await sync_to_async(updateMixerColor)()
-
 
     async def disconnect(self, close_code):
         # Leave room group asdasdasd
