@@ -22,13 +22,14 @@ def getAllFixturesAndTemplates(newConnection):
     else:
         packageJson.update({"fixtureTemplates": [], "fixtures": [], "fixtureGroups": [],
                             "mixer": {"color": "#000000", "mixerType": "na", "isMixerAvailable": "false", "pages": []},
-                            "project": {"name": "na", "internalID": "na"}, "setup": "false"})
+                            "project": {"name": "na", "internalID": "na"}, "setup": "false", "channels": "false", "selectedFixtureIDs": [], "selectedFixtureGroupIDs": []})
 
     return packageJson
 
 
 def addFixture(json):
     try:
+
         print(get_loaded_project())
         project = Project.objects.get(id=get_loaded_project())
         # print(json["id"])

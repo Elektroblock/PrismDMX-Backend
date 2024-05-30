@@ -96,11 +96,6 @@ class ChatConsumer(AsyncWebsocketConsumer):
                     )
                     await sync_to_async(addPagesIfNotExisting)()
                     await sync_to_async(updateDisplayText)()
-                else:
-                    await self.send(
-                        '{"fixtureTemplates": [], "fixtures": [], "fixtureGroups": [],"mixer": {"color": "#000000", '
-                        '"mixerType": "na", "isMixerAvailable": "false", "pages": []},"project": {"name": "naa", '
-                        '"internalID": "naa"}}')
 
             elif "deleteProject" in text_data:
                 await self.channel_layer.group_add(
@@ -186,6 +181,14 @@ class MixerConsumer(AsyncWebsocketConsumer):
                 project.setup = "false"
             else:
                 project.setup = "true"
+            await sync_to_async(project.save)()
+            await sync_to_async(push_all_data)()
+        if text_data == "channel":
+            project = await sync_to_async(Project.objects.get)(id=await sync_to_async(get_loaded_project)())
+            if project.channels_mode == "true":
+                project.channels_mode = "false"
+            else:
+                project.channels_mode = "true"
             await sync_to_async(project.save)()
             await sync_to_async(push_all_data)()
         elif text_data == "pageUP":

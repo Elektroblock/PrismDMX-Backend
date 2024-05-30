@@ -10,6 +10,7 @@ import json
 class Project(models.Model):
     project_name = models.CharField(max_length=200)
     setup = models.CharField(max_length=200, default="false")
+    channels_mode = models.CharField(max_length=200, default="false")
     def __str__(self):
         return self.project_name + " (" + str(self.id) + ")"
 
@@ -29,7 +30,7 @@ class Project(models.Model):
     def generateFullJson(self):
         allMixers = self.mixer_set.all()
 
-        projectJson = {"setup" : self.setup, "fixtureTemplates": [], "fixtures": [], "fixtureGroups": [],
+        projectJson = {"setup" : self.setup, "channels": self.channels_mode, "selectedFixtureIDs": [], "selectedFixtureGroupIDs": [], "fixtureTemplates": [], "fixtures": [], "fixtureGroups": [],
                        "mixer": allMixers[0].generateJson(), "project": self.generateJson(0)}
 
         allFixtures = self.fixture_set.all()
@@ -54,7 +55,6 @@ class Fixture(models.Model):
     project = models.ForeignKey(Project, on_delete=models.CASCADE, default=0)
     fixture_name = models.CharField(max_length=200)
     fixture_start = models.IntegerField(default=1)
-
     def __str__(self):
         return self.fixture_name + " (" + str(self.id) + ")"
 

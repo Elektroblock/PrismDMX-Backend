@@ -48,6 +48,5 @@ def set_mixer_online(online):
         project.save()
 
 
-
 def get_mixer_online():
     return Settings.objects.get(key="mixerOnline").value
