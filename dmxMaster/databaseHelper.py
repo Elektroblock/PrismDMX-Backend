@@ -40,9 +40,9 @@ def get_setting(key):
 
 def set_mixer_online(online):
     mixer_online_setting = Settings.objects.get(key="mixerOnline")
-    mixer_online_setting.value = str(online)
+    mixer_online_setting.value = online
     mixer_online_setting.save()
-    if not online:
+    if online == "false":
         project = Project.objects.get(id=get_loaded_project())
         project.setup = "false"
         project.save()
@@ -50,3 +50,10 @@ def set_mixer_online(online):
 
 def get_mixer_online():
     return Settings.objects.get(key="mixerOnline").value
+
+def set_mixer_channel_page(mixerpage):
+    set_setting("mixerChannelPage", mixerpage)
+
+
+def get_mixer_channel_page():
+    return (get_setting("mixerChannelPage"))

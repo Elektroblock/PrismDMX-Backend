@@ -1,6 +1,7 @@
 from django.db import models
 import json
 
+
 #from dmxMaster.comunicationHelper import get_mixer_online
 
 
@@ -11,6 +12,7 @@ class Project(models.Model):
     project_name = models.CharField(max_length=200)
     setup = models.CharField(max_length=200, default="false")
     channels_mode = models.CharField(max_length=200, default="false")
+
     def __str__(self):
         return self.project_name + " (" + str(self.id) + ")"
 
@@ -29,8 +31,9 @@ class Project(models.Model):
 
     def generateFullJson(self):
         allMixers = self.mixer_set.all()
-
-        projectJson = {"setup" : self.setup, "channels": self.channels_mode, "selectedFixtureIDs": [], "selectedFixtureGroupIDs": [], "fixtureTemplates": [], "fixtures": [], "fixtureGroups": [],
+        print()
+        projectJson = {"setup": self.setup, "channels": self.channels_mode, "selectedFixtureIDs": list(map(str, list(self.selectedfixture_set.all().values_list('fixture_id', flat=True).distinct()))),
+                       "selectedFixtureGroupIDs": list(map(str, list(self.selectedgroup_set.all().values_list('group_id', flat=True).distinct()))), "fixtureTemplates": [], "fixtures": [], "fixtureGroups": [],
                        "mixer": allMixers[0].generateJson(), "project": self.generateJson(0)}
 
         allFixtures = self.fixture_set.all()
@@ -55,6 +58,7 @@ class Fixture(models.Model):
     project = models.ForeignKey(Project, on_delete=models.CASCADE, default=0)
     fixture_name = models.CharField(max_length=200)
     fixture_start = models.IntegerField(default=1)
+
     def __str__(self):
         return self.fixture_name + " (" + str(self.id) + ")"
 
@@ -188,7 +192,8 @@ class MixerPage(models.Model):
     pageID = models.IntegerField(default=0)
 
     def __str__(self):
-        return "(" + str(self.id )+ ") Project: " + self.mixer.project.project_name + " | Page: " + str(self.pageID) + ""
+        return "(" + str(self.id) + ") Project: " + self.mixer.project.project_name + " | Page: " + str(
+            self.pageID) + ""
 
     def generateJson(self):
         # print("json--MixerPage")
@@ -259,8 +264,26 @@ class MixerFader(models.Model):
         }
         return json
 
+
 class Settings(models.Model):
     key = models.CharField(max_length=200)
     value = models.CharField(max_length=200)
+
     def __str__(self):
         return self.key + " : " + self.value
+
+
+class SelectedFixture(models.Model):
+    project = models.ForeignKey(Project, on_delete=models.CASCADE, default=0)
+    fixture = models.ForeignKey(Fixture, on_delete=models.CASCADE, default=0)
+
+    def __str__(self):
+        return '...'
+
+
+class SelectedGroup(models.Model):
+    project = models.ForeignKey(Project, on_delete=models.CASCADE, default=0)
+    group = models.ForeignKey(Group, on_delete=models.CASCADE, default=0)
+
+    def __str__(self):
+        return '...'
