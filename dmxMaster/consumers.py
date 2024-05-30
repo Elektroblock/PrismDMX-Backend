@@ -1,12 +1,14 @@
 # chat/consumers.py
 import json
+import math
 import string
 
 import channels.layers
 from channels.generic.websocket import AsyncWebsocketConsumer, WebsocketConsumer, AsyncWebsocketConsumer
 from asgiref.sync import async_to_sync, sync_to_async
 from dmxMaster.comunicationHelper import set_mixer_online, addPagesIfNotExisting, newPage, addFixtureToGroup, \
-    removeFixtureFromGroup, editButton, newGroup, deleteGroup
+    removeFixtureFromGroup, editButton, newGroup, deleteGroup, selectFixture, deselectFixture, selectGroup, \
+    deselectGroup
 from django.conf import settings
 
 from prismdmx.settings import MIXER_GROUP_NAME
@@ -16,6 +18,7 @@ from .models import Fixture, Template, Mixer, Project, MixerPage, SelectedFixtur
 
 from dmxMaster.comunicationHelper import getAllFixturesAndTemplates, addFixture, editFixture, deleteFixture, setProject, \
     deleteProject, newProject, editFader, deletePage, setMixerColor
+from datetime import datetime
 
 
 # OVERVIEW_GROUP_NAME = "OVERVIEWGroup"
@@ -24,7 +27,7 @@ def broadcast(content, group):
     if type(content) is not str:
         # print("notString")
         content = json.dumps(content)
-    print(content)
+    #print(content)
     channel_layer = channels.layers.get_channel_layer()
     async_to_sync(channel_layer.group_send)(
         group, {
@@ -95,6 +98,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
                         settings.OVERVIEW_GROUP_NAME,
                         self.channel_name
                     )
+                    await sync_to_async(update_main_display_project)()
                     await sync_to_async(addPagesIfNotExisting)()
 
             elif "deleteProject" in text_data:
@@ -106,15 +110,16 @@ class ChatConsumer(AsyncWebsocketConsumer):
                     settings.CONNECTED_GROUP_NAME,
                     self.channel_name
                 )
+                await sync_to_async(update_main_display_project)()
                 await sync_to_async(deleteProject)(text_data_json)
             elif "newProject" in text_data:
                 await sync_to_async(newProject)(text_data_json)
             elif "newPage" in text_data:
                 await sync_to_async(newPage)()
+                await sync_to_async(update_main_display_max_page)()
             elif "deletePage" in text_data:
                 await sync_to_async(deletePage)(text_data_json)
-            elif "deletePage" in text_data:
-                await sync_to_async(deletePage)(text_data_json)
+                await sync_to_async(update_main_display_max_page)()
             elif "editMixerFader" in text_data:
                 await sync_to_async(editFader)(text_data_json)
             elif "editMixerButton" in text_data:
@@ -126,20 +131,24 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 await sync_to_async(addFixtureToGroup)(text_data_json)
             elif "removeFixtureFromGroup" in text_data:
                 await sync_to_async(removeFixtureFromGroup)(text_data_json)
-                await sync_to_async(updateMixerColor)()
             elif "deleteGroup" in text_data:
                 await sync_to_async(deleteGroup)(text_data_json)
-                await sync_to_async(updateMixerColor)()
             elif "newGroup" in text_data:
                 await sync_to_async(newGroup)(text_data_json)
-                await sync_to_async(updateMixerColor)()
-
+            elif '"selectFixture"' in text_data:
+                await sync_to_async(selectFixture)(text_data_json)
+            elif '"deselectFixture"' in text_data:
+                await sync_to_async(deselectFixture)(text_data_json)
+            elif '"selectFixtureGroup"' in text_data:
+                await sync_to_async(selectGroup)(text_data_json)
+            elif '"deselectFixtureGroup"' in text_data:
+                await sync_to_async(deselectGroup)(text_data_json)
 
             await sync_to_async(push_all_data)()
             await sync_to_async(updateDisplayText)()
 
         except ValueError as e:
-            await sync_to_async(self.send)("NO VALID JSON")
+            await sync_to_async(self.send)("NO VALID JSONa")
             return
 
 
@@ -170,25 +179,37 @@ class MixerConsumer(AsyncWebsocketConsumer):
         await self.send(event['content'])
 
     async def receive(self, text_data):
-        print(text_data)
+        #print(text_data)
 
+        if text_data == "reqMain":
+            await self._update_main_display()
+            await self._change_page(0)
+            await sync_to_async(update_main_display_max_page)()
         if text_data == "setup":
             project = await sync_to_async(Project.objects.get)(id=await sync_to_async(get_loaded_project)())
             if project.setup == "true":
                 project.setup = "false"
+                if project.channels_mode == "true":
+                    await sync_to_async(broadcast)("infoChannels", MIXER_GROUP_NAME)
+                else:
+                    await sync_to_async(broadcast)("infoPlaybacks", MIXER_GROUP_NAME)
             else:
                 project.setup = "true"
+                await sync_to_async(broadcast)("infoSetup", MIXER_GROUP_NAME)
             await sync_to_async(project.save)()
             await sync_to_async(push_all_data)()
         if text_data == "channel":
             project = await sync_to_async(Project.objects.get)(id=await sync_to_async(get_loaded_project)())
             if project.channels_mode == "true":
                 project.channels_mode = "false"
+                if project.setup == "false": await sync_to_async(broadcast)("infoPlaybacks", MIXER_GROUP_NAME)
             else:
                 project.channels_mode = "true"
+                if project.setup == "false": await sync_to_async(broadcast)("infoChannels", MIXER_GROUP_NAME)
             await sync_to_async(project.save)()
             await sync_to_async(push_all_data)()
-            await sync_to_async(updateDisplayText)()
+            await self._change_page(0)
+            await sync_to_async(update_main_display_max_page)()
         elif text_data == "pageUP":
             await self._change_page(1)
         elif text_data == "pageDOWN":
@@ -200,8 +221,13 @@ class MixerConsumer(AsyncWebsocketConsumer):
         mixer = await sync_to_async(lambda: list(project.mixer_set.all()))()
         if project.channels_mode == "true":
             current_mixer_channel_page = int(await sync_to_async(get_mixer_channel_page)())
-            if current_mixer_channel_page > 0 or direction > 0:
+            fixtures = project.fixture_set.all()
+            pages = await sync_to_async(len)(fixtures)
+            pages = pages / 5
+            if (current_mixer_channel_page > 0 or direction > 0) and (
+                    current_mixer_channel_page + 1 < math.ceil(pages) or direction < 0):
                 await sync_to_async(set_mixer_channel_page)(current_mixer_channel_page + direction)
+            await sync_to_async(update_main_display_page)(current_mixer_channel_page + direction)
         else:
             pages = await sync_to_async(lambda: list(mixer[0].mixerpage_set.all()))()
             current_page = await sync_to_async(get_mixer_page)()
@@ -210,16 +236,51 @@ class MixerConsumer(AsyncWebsocketConsumer):
                 await sync_to_async(set_mixer_page)(pages[current_index + 1].id)
             elif direction == -1 and current_index > 0:
                 await sync_to_async(set_mixer_page)(pages[current_index - 1].id)
+            await sync_to_async(update_main_display_page)(current_index + direction)
         await sync_to_async(updateDisplayText)()
+
+    async def _update_main_display(self):
+        now = datetime.now()
+        await self.send("infoConnected")
+        await self.send("dclh" + str(now.hour))
+        await self.send("dclm" + str(now.minute - 1))
+        await sync_to_async(update_main_display_project)()
 
 
 # MixerHelper
+def update_main_display_project():
+    try:
+        project_id = get_loaded_project()
+        project = Project.objects.get(id=project_id)
+        projName = project.project_name
+        broadcast("proj" + projName, MIXER_GROUP_NAME)
+    except:
+        broadcast("proj ", MIXER_GROUP_NAME)
+
+
+def update_main_display_page(page):
+    broadcast("page" + str(page + 1), MIXER_GROUP_NAME)
+
+
+def update_main_display_max_page():
+    project_id = get_loaded_project()
+    project = Project.objects.get(id=project_id)
+    if project.channels_mode == "false":
+        print("Channels false")
+        mixer = project.mixer_set.all()
+        pages = mixer[0].mixerpage_set.all()
+        broadcast("mpge" + str(len(pages)), MIXER_GROUP_NAME)
+    else:
+        fixtures = project.fixture_set.all()
+        pages = len(fixtures) / 5
+        broadcast("mpge" + str(math.ceil(pages)), MIXER_GROUP_NAME)
+
 
 def updateDisplayText():
     project = Project.objects.get(id=get_loaded_project())
     mixer = project.mixer_set.all()[0]
     if project.channels_mode == "false":
-        print("Mixer Mode")
+        print("Mixer Modee")
         try:
             mixer_page = mixer.mixerpage_set.all().get(id=get_mixer_page())
         except:
@@ -232,8 +293,9 @@ def updateDisplayText():
             broadcast(str("disp" + str(index) + fader.name), MIXER_GROUP_NAME)
             hex_color = fader.color.replace("#", "")
             color = tuple(int(hex_color[i:i + 2], 16) for i in (0, 2, 4))
-            broadcast("mcol" + str(index + 1) + "{:03d}".format(color[0], ) + "{:03d}".format(color[1], ) + "{:03d}".format(
-                color[2], ), MIXER_GROUP_NAME)
+            broadcast(
+                "mcol" + str(index + 1) + "{:03d}".format(color[0], ) + "{:03d}".format(color[1], ) + "{:03d}".format(
+                    color[2], ), MIXER_GROUP_NAME)
             index += 1
     else:
 
@@ -241,8 +303,8 @@ def updateDisplayText():
         fixtures = project.fixture_set.all()
         print("Channel Mode" + str(mixer_channel_page))
         for index in range(5):
-            if len(fixtures) > index+mixer_channel_page*5:
-                fixture = fixtures[index+mixer_channel_page*5]
+            if len(fixtures) > index + mixer_channel_page * 5:
+                fixture = fixtures[index + mixer_channel_page * 5]
                 broadcast(str("disp" + str(index) + fixture.fixture_name), MIXER_GROUP_NAME)
             else:
                 broadcast(str("disp" + str(index) + ""), MIXER_GROUP_NAME)
@@ -250,6 +312,7 @@ def updateDisplayText():
             #color = tuple(int(hex_color[i:i + 2], 16) for i in (0, 2, 4))
             #broadcast("mcol" + str(index + 1) + "{:03d}".format(color[0], ) + "{:03d}".format(color[1], ) + "{:03d}".format(
             #    color[2], ), MIXER_GROUP_NAME)
+
 
 def updateMixerColor():
     project = Project.objects.get(id=get_loaded_project())
