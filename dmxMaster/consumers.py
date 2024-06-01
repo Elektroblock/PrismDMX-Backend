@@ -333,5 +333,5 @@ def send_mixer_data():
 
 def send_meta_data():
     broadcast(json.dumps(get_meta_data()), settings.CONNECTED_GROUP_NAME)
-    broadcast(json.dumps(get_meta_data()), settings.OVERVIEW_GROUP_NAME)
+    broadcast(json.dumps(get_meta_data(True)), settings.OVERVIEW_GROUP_NAME)
 
