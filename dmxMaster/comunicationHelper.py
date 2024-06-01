@@ -8,7 +8,7 @@ from dmxMaster.databaseHelper import set_loaded_project, get_loaded_project, set
     get_loaded_project, set_setting, get_setting, set_mixer_online, get_mixer_online
 
 
-def get_meta_data(newConnection=True):
+def get_meta_data(newConnection=False):
     packageJson = {"availableProjects": []}
 
     allProjects = Project.objects.all()
@@ -16,13 +16,16 @@ def get_meta_data(newConnection=True):
     for x in allProjects:
         packageJson["availableProjects"].append(x.get_project_json(get_loaded_project()))
 
-    if get_loaded_project() > 0: #and not newConnection:
+    if get_loaded_project() > 0 and not newConnection: #and not newConnection:
         try:
             project = Project.objects.get(id=get_loaded_project())
             packageJson.update({"setup": project.setup, "channels": project.channels_mode, "currentProject" : project.get_project_json(get_loaded_project())})
         except:
             packageJson.update({"setup": "false", "channels": "false"})
             return packageJson
+    else:
+        packageJson.update({"setup": "false", "channels": "false"})
+
     #else:
     #    packageJson.update({"fixtureTemplates": [], "fixtures": [], "fixtureGroups": [],
     #                        "mixer": {"color": "#000000", "mixerType": "na", "isMixerAvailable": "false", "pages": []},
