@@ -1,4 +1,4 @@
-from .models import MixerPage, MixerFader, MixerButton, GroupLink, Group, SelectedFixture, SelectedGroup
+from .models import MixerPage, MixerFader, MixerButton, GroupLink, Group
 from .models import Template
 from .models import Channel
 from .models import Fixture, Project, Mixer, Settings
@@ -8,23 +8,31 @@ from dmxMaster.databaseHelper import set_loaded_project, get_loaded_project, set
     get_loaded_project, set_setting, get_setting, set_mixer_online, get_mixer_online
 
 
-def getAllFixturesAndTemplates(newConnection):
+def get_meta_data(newConnection=True):
     packageJson = {"availableProjects": []}
 
     allProjects = Project.objects.all()
 
     for x in allProjects:
-        packageJson["availableProjects"].append(x.generateJson(get_loaded_project()))
+        packageJson["availableProjects"].append(x.get_project_json(get_loaded_project()))
 
-    if get_loaded_project() > 0 and not newConnection:
+    if get_loaded_project() > 0: #and not newConnection:
         project = Project.objects.get(id=get_loaded_project())
-        packageJson.update(project.generateFullJson())
-    else:
-        packageJson.update({"fixtureTemplates": [], "fixtures": [], "fixtureGroups": [],
-                            "mixer": {"color": "#000000", "mixerType": "na", "isMixerAvailable": "false", "pages": []},
-                            "project": {"name": "na", "internalID": "na"}, "setup": "false", "channels": "false", "selectedFixtureIDs": [], "selectedFixtureGroupIDs": []})
+        packageJson.update({"currentProject" : project.get_project_json(get_loaded_project())})
+    #else:
+    #    packageJson.update({"fixtureTemplates": [], "fixtures": [], "fixtureGroups": [],
+    #                        "mixer": {"color": "#000000", "mixerType": "na", "isMixerAvailable": "false", "pages": []},
+    #                        "project": {"name": "na", "internalID": "na"}, "setup": "false", "channels": "false", "selectedFixtureIDs": [], "selectedFixtureGroupIDs": []})
 
     return packageJson
+
+def get_template_json():
+    allTemplates = Template.objects.all()
+    all_template_json = []
+    for x in allTemplates:
+        all_template_json.append(x.generateJson())
+
+    return list(all_template_json)
 
 
 def addFixture(json):

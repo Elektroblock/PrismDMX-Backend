@@ -14,10 +14,10 @@ from django.conf import settings
 from prismdmx.settings import MIXER_GROUP_NAME
 from .databaseHelper import get_loaded_project, get_mixer_page, set_mixer_page, set_mixer_channel_page, \
     get_mixer_channel_page
-from .models import Fixture, Template, Mixer, Project, MixerPage, SelectedFixture
+from .models import Fixture, Template, Mixer, Project, MixerPage
 
-from dmxMaster.comunicationHelper import getAllFixturesAndTemplates, addFixture, editFixture, deleteFixture, setProject, \
-    deleteProject, newProject, editFader, deletePage, setMixerColor
+from dmxMaster.comunicationHelper import addFixture, editFixture, deleteFixture, setProject, \
+    deleteProject, newProject, editFader, deletePage, setMixerColor, get_template_json, get_meta_data
 from datetime import datetime
 
 
@@ -47,7 +47,13 @@ class ChatConsumer(AsyncWebsocketConsumer):
         await self.channel_layer.group_add(settings.OVERVIEW_GROUP_NAME, self.channel_name)
 
         await self.accept()
-        await self.send(json.dumps(await sync_to_async(getAllFixturesAndTemplates)(True)))
+        project = await sync_to_async(Project.objects.get)(id=await sync_to_async(get_loaded_project)())
+
+        await self.send(json.dumps(await sync_to_async(get_meta_data)()))
+        await self.send(json.dumps(await sync_to_async(get_template_json)()))
+        await self.send(json.dumps(await sync_to_async(project.get_fixture_json)()))
+        await self.send(json.dumps(await sync_to_async(project.get_group_json)()))
+        await self.send(json.dumps(await sync_to_async(project.get_mixer_json)()))
 
     async def disconnect(self, close_code):
         await self.channel_layer.group_discard(  # langsam

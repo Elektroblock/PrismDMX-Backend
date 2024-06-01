@@ -2,7 +2,7 @@ from django.contrib import admin
 
 # Register your models here.
 from .models import TemplateChannel, Settings, Template, Channel, Fixture, Group, GroupLink, MixerFader, MixerPage, \
-    MixerButton, Mixer, Project, SelectedFixture, SelectedGroup
+    MixerButton, Mixer, Project
 
 admin.site.register(TemplateChannel)
 admin.site.register(Template)
@@ -16,5 +16,3 @@ admin.site.register(MixerButton)
 admin.site.register(Mixer)
 admin.site.register(Project)
 admin.site.register(Settings)
-admin.site.register(SelectedFixture)
-admin.site.register(SelectedGroup)

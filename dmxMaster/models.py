@@ -16,7 +16,7 @@ class Project(models.Model):
     def __str__(self):
         return self.project_name + " (" + str(self.id) + ")"
 
-    def generateJson(self, loadedProject):
+    def get_project_json(self, loadedProject):
         if loadedProject == self.id:
             json = {
                 "name": self.project_name + "(currently open)",
@@ -32,14 +32,11 @@ class Project(models.Model):
     def generateFullJson(self):
         allMixers = self.mixer_set.all()
         print()
-        projectJson = {"setup": self.setup, "channels": self.channels_mode, "selectedFixtureIDs": list(map(str, list(self.selectedfixture_set.all().values_list('fixture_id', flat=True).distinct()))),
-                       "selectedFixtureGroupIDs": list(map(str, list(self.selectedgroup_set.all().values_list('group_id', flat=True).distinct()))), "fixtureTemplates": [], "fixtures": [], "fixtureGroups": [],
-                       "mixer": allMixers[0].generateJson(), "project": self.generateJson(0)}
+        #projectJson = {"setup": self.setup, "channels": self.channels_mode, "selectedFixtureIDs": list(map(str, list(self.selectedfixture_set.all().values_list('fixture_id', flat=True).distinct()))),
+        #               "selectedFixtureGroupIDs": list(map(str, list(self.selectedgroup_set.all().values_list('group_id', flat=True).distinct()))), "fixtureTemplates": [], "fixtures": [], "fixtureGroups": [],
+        #               "mixer": allMixers[0].generateJson(), "project": self.generateJson(0)}
+        projectJson = {}
 
-        allFixtures = self.fixture_set.all()
-
-        for x in allFixtures:
-            projectJson["fixtures"].append(x.generateJson())
 
         allGroups = self.group_set.all()
 
@@ -53,10 +50,33 @@ class Project(models.Model):
 
         return projectJson
 
+    def get_fixture_json(self):
+        allFixtures = self.fixture_set.all()
+        all_fixture_json = []
+        for x in allFixtures:
+            all_fixture_json.append(x.generateJson())
+
+        return list(all_fixture_json)
+
+    def get_group_json(self):
+        allGroups = self.group_set.all()
+        all_group_json = []
+        for x in allGroups:
+            all_group_json.append(x.generateJson())
+
+        return list(all_group_json)
+
+    def get_mixer_json(self):
+        allMixers = self.mixer_set.all()
+        allMixers[0].generateJson()
+        return allMixers[0].generateJson()
+
+
 
 class Fixture(models.Model):
     project = models.ForeignKey(Project, on_delete=models.CASCADE, default=0)
     fixture_name = models.CharField(max_length=200)
+    selected = models.CharField(max_length=200, default="false")
     fixture_start = models.IntegerField(default=1)
 
     def __str__(self):
@@ -68,10 +88,9 @@ class Fixture(models.Model):
 
         fixtureJson = {
             "name": self.fixture_name,
-            "FixtureGroup": "na",
             "internalID": str(self.id),
-            "template": "na",
             "startChannel": str(self.fixture_start),
+            "selected": self.selected,
             "channels": [
             ]
         }
@@ -135,6 +154,7 @@ class TemplateChannel(models.Model):
 class Group(models.Model):
     group_name = models.CharField(max_length=200)
     project = models.ForeignKey(Project, on_delete=models.CASCADE, default=0)
+    selected = models.CharField(max_length=200, default="false")
 
     def __str__(self):
         return self.group_name + " (" + str(self.id) + ")"
@@ -146,6 +166,7 @@ class Group(models.Model):
         json = {
             "name": self.group_name,
             "groupID": str(self.id),
+            "selected": self.selected,
             "internalIDs": [],
         }
         for grouplink in grouplinks:
@@ -231,7 +252,7 @@ class MixerButton(models.Model):
         json = {
             "id": str(self.id),
             "name": self.name,
-            "color": self.color,
+            "color": "#" + self.color,
             "isPressed": self.isPressed,
             "assignedID": str(self.assignedID),
             "assignedType": self.assignedType,
@@ -256,7 +277,7 @@ class MixerFader(models.Model):
         json = {
             "id": str(self.id),
             "name": self.name,
-            "color": self.color,
+            "color": "#" + self.color,
             "isTouched": self.isTouched,
             "value": self.value,
             "assignedID": str(self.assignedID),
@@ -273,17 +294,21 @@ class Settings(models.Model):
         return self.key + " : " + self.value
 
 
-class SelectedFixture(models.Model):
-    project = models.ForeignKey(Project, on_delete=models.CASCADE, default=0)
-    fixture = models.ForeignKey(Fixture, on_delete=models.CASCADE, default=0)
-
-    def __str__(self):
-        return '...'
 
 
-class SelectedGroup(models.Model):
-    project = models.ForeignKey(Project, on_delete=models.CASCADE, default=0)
-    group = models.ForeignKey(Group, on_delete=models.CASCADE, default=0)
 
-    def __str__(self):
-        return '...'
+
+#class SelectedFixture(models.Model):
+#    project = models.ForeignKey(Project, on_delete=models.CASCADE, default=0)
+#    fixture = models.ForeignKey(Fixture, on_delete=models.CASCADE, default=0)
+#
+#    def __str__(self):
+#        return '...'#
+#
+#
+#class SelectedGroup(models.Model):
+#    project = models.ForeignKey(Project, on_delete=models.CASCADE, default=0)
+#    group = models.ForeignKey(Group, on_delete=models.CASCADE, default=0)#
+#
+#    def __str__(self):
+#        return '...'
