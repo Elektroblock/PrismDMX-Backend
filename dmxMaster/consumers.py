@@ -48,7 +48,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
         await self.accept()
 
-        await self.send(json.dumps(await sync_to_async(get_meta_data(True))()))
+        await self.send(json.dumps(await sync_to_async(get_meta_data)(True)))
         await self.send(json.dumps(await sync_to_async(get_template_json)()))
 
 
