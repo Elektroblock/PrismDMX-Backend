@@ -70,7 +70,6 @@ class ChatConsumer(AsyncWebsocketConsumer):
         try:
             text_data_json = json.loads(text_data)
             key = list(text_data_json.keys())[0]
-            project = await sync_to_async(Project.objects.get)(id=await sync_to_async(get_loaded_project)())
 
             if key == "newFixture":
                 await sync_to_async(addFixture)(text_data_json)
@@ -85,8 +84,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
                     await self.channel_layer.group_discard(settings.OVERVIEW_GROUP_NAME,self.channel_name)
                     await sync_to_async(update_main_display_project)()
                     await sync_to_async(addPagesIfNotExisting)()
-                    project = await sync_to_async(Project.objects.get)(id=await sync_to_async(get_loaded_project)())
-                    await sync_to_async(send_all_project_data)(project)
+                    await sync_to_async(send_all_project_data)()
 
             elif key =="deleteProject":
                 await self.channel_layer.group_add(
@@ -264,6 +262,7 @@ def update_main_display_max_page():
 
 
 def updateDisplayText():
+    return
     project = Project.objects.get(id=get_loaded_project())
     mixer = project.mixer_set.all()[0]
     if project.channels_mode == "false":
@@ -310,7 +309,8 @@ def updateMixerColor():
     broadcast(str("colg" + str(color[1])), MIXER_GROUP_NAME)
     broadcast(str("colb" + str(color[2])), MIXER_GROUP_NAME)
 
-def send_all_project_data(project):
+def send_all_project_data():
+    project = Project.objects.get(id=get_loaded_project())
     broadcast(json.dumps(project.get_fixture_json()), settings.CONNECTED_GROUP_NAME)
     broadcast(json.dumps(project.get_group_json()), settings.CONNECTED_GROUP_NAME)
     broadcast(json.dumps(project.get_mixer_json()), settings.CONNECTED_GROUP_NAME)
@@ -320,12 +320,15 @@ def send_all_project_data(project):
 
 
 
-def send_fixture_data(project):
+def send_fixture_data():
+    project = Project.objects.get(id=get_loaded_project())
     broadcast(json.dumps(project.get_fixture_json()), settings.CONNECTED_GROUP_NAME)
 
-def send_group_data(project):
+def send_group_data():
+    project = Project.objects.get(id=get_loaded_project())
     broadcast(json.dumps(project.get_group_json()), settings.CONNECTED_GROUP_NAME)
-def send_mixer_data(project):
+def send_mixer_data():
+    project = Project.objects.get(id=get_loaded_project())
     broadcast(json.dumps(project.get_mixer_json()), settings.CONNECTED_GROUP_NAME)
 
 def send_meta_data():

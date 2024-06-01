@@ -17,8 +17,12 @@ def get_meta_data(newConnection=True):
         packageJson["availableProjects"].append(x.get_project_json(get_loaded_project()))
 
     if get_loaded_project() > 0: #and not newConnection:
-        project = Project.objects.get(id=get_loaded_project())
-        packageJson.update({"currentProject" : project.get_project_json(get_loaded_project())})
+        try:
+            project = Project.objects.get(id=get_loaded_project())
+            packageJson.update({"setup": project.setup, "channels": project.channels_mode, "currentProject" : project.get_project_json(get_loaded_project())})
+        except:
+            packageJson.update({"setup": "false", "channels": "false"})
+            return packageJson
     #else:
     #    packageJson.update({"fixtureTemplates": [], "fixtures": [], "fixtureGroups": [],
     #                        "mixer": {"color": "#000000", "mixerType": "na", "isMixerAvailable": "false", "pages": []},
@@ -142,6 +146,7 @@ def addPagesIfNotExisting():  # also set active Page to first page
                                  assignedType="")
             button.save()
 
+    pages = mixer.mixerpage_set.all()
     set_mixer_page(pages[0].id)
 
 
