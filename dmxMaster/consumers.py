@@ -135,7 +135,8 @@ class ChatConsumer(AsyncWebsocketConsumer):
             await sync_to_async(updateDisplayText)()
 
         except ValueError as e:
-            await sync_to_async(self.send)("NO VALID JSONa")
+            print("NO VALID JSON: " + text_data)
+            self.disconnect()
             return
 
 class MixerConsumer(AsyncWebsocketConsumer):
