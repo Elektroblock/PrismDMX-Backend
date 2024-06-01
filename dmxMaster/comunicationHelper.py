@@ -39,7 +39,7 @@ def get_template_json():
     for x in allTemplates:
         all_template_json["templates"].append(x.generateJson())
 
-    return list(all_template_json)
+    return all_template_json
 
 
 def addFixture(json):

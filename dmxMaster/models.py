@@ -56,7 +56,7 @@ class Project(models.Model):
         for x in allFixtures:
             all_fixture_json["fixtures"].append(x.generateJson())
 
-        return list(all_fixture_json)
+        return all_fixture_json
 
     def get_group_json(self):
         allGroups = self.group_set.all()
@@ -64,7 +64,7 @@ class Project(models.Model):
         for x in allGroups:
             all_group_json["fixtureGroups"].append(x.generateJson())
 
-        return list(all_group_json)
+        return all_group_json
 
     def get_mixer_json(self):
         allMixers = self.mixer_set.all()
