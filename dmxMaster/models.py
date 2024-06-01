@@ -52,17 +52,17 @@ class Project(models.Model):
 
     def get_fixture_json(self):
         allFixtures = self.fixture_set.all()
-        all_fixture_json = []
+        all_fixture_json = {"fixtures": []}
         for x in allFixtures:
-            all_fixture_json.append(x.generateJson())
+            all_fixture_json["fixtures"].append(x.generateJson())
 
         return list(all_fixture_json)
 
     def get_group_json(self):
         allGroups = self.group_set.all()
-        all_group_json = []
+        all_group_json = {"fixtureGroups": []}
         for x in allGroups:
-            all_group_json.append(x.generateJson())
+            all_group_json["fixtureGroups"].append(x.generateJson())
 
         return list(all_group_json)
 

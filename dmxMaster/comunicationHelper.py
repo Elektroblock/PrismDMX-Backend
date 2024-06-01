@@ -35,9 +35,9 @@ def get_meta_data(newConnection=False):
 
 def get_template_json():
     allTemplates = Template.objects.all()
-    all_template_json = []
+    all_template_json = {"templates": []}
     for x in allTemplates:
-        all_template_json.append(x.generateJson())
+        all_template_json["templates"].append(x.generateJson())
 
     return list(all_template_json)
 
