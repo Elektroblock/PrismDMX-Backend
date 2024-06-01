@@ -64,6 +64,7 @@ def editFixture(json):
 
         fixture.fixture_name = json["editFixture"]["fixture"]["name"]
         fixture.fixture_start = json["editFixture"]["fixture"]["startChannel"]
+        fixture.selected = "false"
         if int(fixture.fixture_start) < 1:
             fixture.fixture_start = 1
 
@@ -87,9 +88,9 @@ def deleteFixture(json):
 
 def setProject(json):
     try:
-        project = Project.objects.get(id=int(json["setProject"]["project"]["internalID"]))
+        project = Project.objects.get(id=int(json["setProject"]))
         #print(get_loaded_project())
-        set_loaded_project(int(json["setProject"]["project"]["internalID"]))
+        set_loaded_project(int(json["setProject"]))
         #print(get_loaded_project())
         return True
     except:
@@ -109,7 +110,7 @@ def deleteProject(json):
 def newProject(json):
     # r = lambda: random.randint(0, 255)ddd
     # print('#%02X%02X%02X' % (r(), r(), r()))
-    project = Project(project_name=json["newProject"]["project"]["name"])
+    project = Project(project_name=json["newProject"])
     project.save()
     mixer = Mixer(project=project, color="ffffff", mixerUniqueName="mainMixer", mixerType="5")  # change to 0 later
     mixer.save()

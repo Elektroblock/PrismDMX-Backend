@@ -36,9 +36,9 @@ def broadcast(content, group):
         })
 
 
-def push_all_data():
-    broadcast(getAllFixturesAndTemplates(False), settings.CONNECTED_GROUP_NAME)
-    broadcast(getAllFixturesAndTemplates(True), settings.OVERVIEW_GROUP_NAME)
+#def push_all_data():
+#    broadcast(getAllFixturesAndTemplates(False), settings.CONNECTED_GROUP_NAME)
+#    broadcast(getAllFixturesAndTemplates(True), settings.OVERVIEW_GROUP_NAME)
 
 
 class ChatConsumer(AsyncWebsocketConsumer):
@@ -47,13 +47,10 @@ class ChatConsumer(AsyncWebsocketConsumer):
         await self.channel_layer.group_add(settings.OVERVIEW_GROUP_NAME, self.channel_name)
 
         await self.accept()
-        project = await sync_to_async(Project.objects.get)(id=await sync_to_async(get_loaded_project)())
 
-        await self.send(json.dumps(await sync_to_async(get_meta_data)()))
+        await sync_to_async(send_meta_data)()
         await self.send(json.dumps(await sync_to_async(get_template_json)()))
-        await self.send(json.dumps(await sync_to_async(project.get_fixture_json)()))
-        await self.send(json.dumps(await sync_to_async(project.get_group_json)()))
-        await self.send(json.dumps(await sync_to_async(project.get_mixer_json)()))
+
 
     async def disconnect(self, close_code):
         await self.channel_layer.group_discard(  # langsam
@@ -69,45 +66,29 @@ class ChatConsumer(AsyncWebsocketConsumer):
         await self.send(event['content'])
 
     async def receive(self, text_data):
-        print(text_data)
-
-        if text_data.startswith('!'
-                                ''):
-            broadcast(text_data.replace('!', '', 1), MIXER_GROUP_NAME)
-            # broadcast_content("getAllFixturesAndTemplates()")
-            return
-
-        if "test2" == text_data:
-            allMixers = Mixer.objects.all()
-
-            for x in allMixers:
-                self.send(json.dumps(x.generateJson()))
-
-            return
 
         try:
             text_data_json = json.loads(text_data)
-            if "newFixture" in text_data:
+            key = list(text_data_json.keys())[0]
+            project = await sync_to_async(Project.objects.get)(id=await sync_to_async(get_loaded_project)())
+
+            if key == "newFixture":
                 await sync_to_async(addFixture)(text_data_json)
-            elif "editFixture" in text_data:
+            elif key =="editFixture" in text_data:
                 await sync_to_async(editFixture)(text_data_json)
-            elif "deleteFixture" in text_data:
+            elif key =="deleteFixture" in text_data:
                 await sync_to_async(deleteFixture)(text_data_json)
-            elif "setProject" in text_data:
+            elif key =="setProject" in text_data:
 
                 if await sync_to_async(setProject)(text_data_json):
-                    await self.channel_layer.group_add(
-                        settings.CONNECTED_GROUP_NAME,
-                        self.channel_name
-                    )
-                    await self.channel_layer.group_discard(
-                        settings.OVERVIEW_GROUP_NAME,
-                        self.channel_name
-                    )
+                    await self.channel_layer.group_add(settings.CONNECTED_GROUP_NAME,self.channel_name)
+                    await self.channel_layer.group_discard(settings.OVERVIEW_GROUP_NAME,self.channel_name)
                     await sync_to_async(update_main_display_project)()
                     await sync_to_async(addPagesIfNotExisting)()
+                    project = await sync_to_async(Project.objects.get)(id=await sync_to_async(get_loaded_project)())
+                    await sync_to_async(send_all_project_data)(project)
 
-            elif "deleteProject" in text_data:
+            elif key =="deleteProject":
                 await self.channel_layer.group_add(
                     settings.OVERVIEW_GROUP_NAME,
                     self.channel_name
@@ -118,45 +99,44 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 )
                 await sync_to_async(update_main_display_project)()
                 await sync_to_async(deleteProject)(text_data_json)
-            elif "newProject" in text_data:
+            elif key == "newProject":
                 await sync_to_async(newProject)(text_data_json)
-            elif "newPage" in text_data:
+                await sync_to_async(send_meta_data)()
+            elif key == "newPage":
                 await sync_to_async(newPage)()
                 await sync_to_async(update_main_display_max_page)()
-            elif "deletePage" in text_data:
+            elif key == "deletePage":
                 await sync_to_async(deletePage)(text_data_json)
                 await sync_to_async(update_main_display_max_page)()
-            elif "editMixerFader" in text_data:
+            elif key == "editMixerFader":
                 await sync_to_async(editFader)(text_data_json)
-            elif "editMixerButton" in text_data:
+            elif key == "editMixerButton":
                 await sync_to_async(editButton)(text_data_json)
-            elif "setMixerColor" in text_data:
+            elif key == "setMixerColor" :
                 await sync_to_async(setMixerColor)(text_data_json)
                 await sync_to_async(updateMixerColor)()
-            elif "addFixtureToGroup" in text_data:
+            elif key == "addFixtureToGroup":
                 await sync_to_async(addFixtureToGroup)(text_data_json)
-            elif "removeFixtureFromGroup" in text_data:
+            elif key == "removeFixtureFromGroup":
                 await sync_to_async(removeFixtureFromGroup)(text_data_json)
-            elif "deleteGroup" in text_data:
+            elif key == "deleteGroup":
                 await sync_to_async(deleteGroup)(text_data_json)
-            elif "newGroup" in text_data:
+            elif key == "newGroup" :
                 await sync_to_async(newGroup)(text_data_json)
-            elif '"selectFixture"' in text_data:
+            elif key == "selectFixture":
                 await sync_to_async(selectFixture)(text_data_json)
-            elif '"deselectFixture"' in text_data:
+            elif key == "deselectFixture":
                 await sync_to_async(deselectFixture)(text_data_json)
-            elif '"selectFixtureGroup"' in text_data:
+            elif key == "selectFixtureGroup":
                 await sync_to_async(selectGroup)(text_data_json)
-            elif '"deselectFixtureGroup"' in text_data:
+            elif key == "deselectFixtureGroup":
                 await sync_to_async(deselectGroup)(text_data_json)
 
-            await sync_to_async(push_all_data)()
             await sync_to_async(updateDisplayText)()
 
         except ValueError as e:
             await sync_to_async(self.send)("NO VALID JSONa")
             return
-
 
 class MixerConsumer(AsyncWebsocketConsumer):
     async def connect(self):
@@ -168,7 +148,7 @@ class MixerConsumer(AsyncWebsocketConsumer):
         await self.accept()
         # 4 Prefix, 2 Display, ... contend
         await sync_to_async(set_mixer_online)("true")
-        await sync_to_async(push_all_data)()
+        # await sync_to_async(push_all_data)()
         await sync_to_async(updateDisplayText)()
         await sync_to_async(updateMixerColor)()
 
@@ -179,7 +159,7 @@ class MixerConsumer(AsyncWebsocketConsumer):
             self.channel_name
         )
         await sync_to_async(set_mixer_online)("false")
-        await sync_to_async(push_all_data)()
+        # await sync_to_async(push_all_data)()
 
     async def new_content(self, event):
         await self.send(event['content'])
@@ -203,7 +183,7 @@ class MixerConsumer(AsyncWebsocketConsumer):
                 project.setup = "true"
                 await sync_to_async(broadcast)("infoSetup", MIXER_GROUP_NAME)
             await sync_to_async(project.save)()
-            await sync_to_async(push_all_data)()
+            #await sync_to_async(push_all_data)()
         if text_data == "channel":
             project = await sync_to_async(Project.objects.get)(id=await sync_to_async(get_loaded_project)())
             if project.channels_mode == "true":
@@ -213,7 +193,7 @@ class MixerConsumer(AsyncWebsocketConsumer):
                 project.channels_mode = "true"
                 if project.setup == "false": await sync_to_async(broadcast)("infoChannels", MIXER_GROUP_NAME)
             await sync_to_async(project.save)()
-            await sync_to_async(push_all_data)()
+            #await sync_to_async(push_all_data)()
             await self._change_page(0)
             await sync_to_async(update_main_display_max_page)()
         elif text_data == "pageUP":
@@ -328,3 +308,26 @@ def updateMixerColor():
     broadcast(str("colr" + str(color[0])), MIXER_GROUP_NAME)
     broadcast(str("colg" + str(color[1])), MIXER_GROUP_NAME)
     broadcast(str("colb" + str(color[2])), MIXER_GROUP_NAME)
+
+def send_all_project_data(project):
+    broadcast(json.dumps(project.get_fixture_json()), settings.CONNECTED_GROUP_NAME)
+    broadcast(json.dumps(project.get_group_json()), settings.CONNECTED_GROUP_NAME)
+    broadcast(json.dumps(project.get_mixer_json()), settings.CONNECTED_GROUP_NAME)
+    broadcast(json.dumps(get_meta_data()), settings.CONNECTED_GROUP_NAME)
+
+
+
+
+
+def send_fixture_data(project):
+    broadcast(json.dumps(project.get_fixture_json()), settings.CONNECTED_GROUP_NAME)
+
+def send_group_data(project):
+    broadcast(json.dumps(project.get_group_json()), settings.CONNECTED_GROUP_NAME)
+def send_mixer_data(project):
+    broadcast(json.dumps(project.get_mixer_json()), settings.CONNECTED_GROUP_NAME)
+
+def send_meta_data():
+    broadcast(json.dumps(get_meta_data()), settings.CONNECTED_GROUP_NAME)
+    broadcast(json.dumps(get_meta_data()), settings.OVERVIEW_GROUP_NAME)
+
