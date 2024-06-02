@@ -48,14 +48,14 @@ def addFixture(json):
         #print(get_loaded_project())
         project = Project.objects.get(id=get_loaded_project())
         # print(json["id"])
-        fixture = Fixture(project=project, fixture_name=json["newFixture"]["fixture"]["name"],
-                          fixture_start=json["newFixture"]["fixture"]["startChannel"])
+        fixture = Fixture(project=project, fixture_name=json["newFixture"]["name"],
+                          fixture_start=json["newFixture"]["startChannel"])
 
         if int(fixture.fixture_start) < 1:
             fixture.fixture_start = 1
         fixture.save()
-        for newChannel in json["newFixture"]["fixture"]["channels"]:
-           # print(newChannel)
+        for newChannel in json["newFixture"]["channels"]:
+            print(newChannel)
             channel = Channel(fixture=fixture, channel_name=newChannel["ChannelName"],
                               channel_type=newChannel["ChannelType"], channel_location=newChannel["dmxChannel"])
             channel.save()
@@ -89,7 +89,7 @@ def editFixture(json):
 
 
 def deleteFixture(json):
-    fixture = Fixture.objects.get(id=int(json["deleteFixture"]["internalID"]))
+    fixture = Fixture.objects.get(id=int(json["deleteFixture"]))
     fixture.delete()
 
 
@@ -106,13 +106,14 @@ def setProject(json):
 
 def deleteProject(json):
     try:
-        project = Project.objects.get(id=int(json["deleteProject"]["project"]["internalID"]))
+        project = Project.objects.get(id=int(json["deleteProject"]))
         project.delete()
-        if get_loaded_project() == int(json["deleteProject"]["project"]["internalID"]):
+        if get_loaded_project() == int(json["deleteProject"]):
             set_loaded_project(0)
+            return True
     except:
-        return
-
+        return False
+    return False
 
 def newProject(json):
     # r = lambda: random.randint(0, 255)ddd
@@ -222,16 +223,16 @@ def removeFixtureFromGroup(json_data):
 def newGroup(json_data):
     #print(json_data["newGroup"]["groupName"])
     project = Project.objects.get(id=get_loaded_project())
-    group = Group(group_name=json_data["newGroup"]["groupName"], project=project)
+    group = Group(group_name=json_data["newGroup"], project=project)
     group.save()
 def deleteGroup(json_data):
-    group = Group.objects.get(id=int(json_data["deleteGroup"]["groupID"]))
+    group = Group.objects.get(id=int(json_data["deleteGroup"]))
     group.delete()
 
 def selectFixture(json_data):
 
     project = Project.objects.get(id=get_loaded_project())
-    fixture = Fixture.objects.get(id=int(json_data["selectFixture"]["fixtureID"]))
+    fixture = Fixture.objects.get(id=int(json_data["selectFixture"]))
     if not SelectedFixture.objects.filter(project=project, fixture=fixture).exists():
         selectedfixture = SelectedFixture(project=project, fixture=fixture)
         selectedfixture.save()
@@ -239,7 +240,7 @@ def selectFixture(json_data):
 def deselectFixture(json_data):
     try:
         project = Project.objects.get(id=get_loaded_project())
-        fixture = Fixture.objects.get(id=int(json_data["deselectFixture"]["fixtureID"]))
+        fixture = Fixture.objects.get(id=int(json_data["deselectFixture"]))
         selectedfixture = SelectedFixture.objects.get(project=project, fixture=fixture)
         selectedfixture.delete()
     except:

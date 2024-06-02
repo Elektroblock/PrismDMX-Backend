@@ -73,10 +73,12 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
             if key == "newFixture":
                 await sync_to_async(addFixture)(text_data_json)
+                await sync_to_async(send_fixture_data)()
             elif key =="editFixture" in text_data:
                 await sync_to_async(editFixture)(text_data_json)
             elif key =="deleteFixture" in text_data:
                 await sync_to_async(deleteFixture)(text_data_json)
+                await sync_to_async(send_fixture_data)()
             elif key =="setProject" in text_data:
 
                 if await sync_to_async(setProject)(text_data_json):
@@ -87,25 +89,30 @@ class ChatConsumer(AsyncWebsocketConsumer):
                     await sync_to_async(send_all_project_data)()
 
             elif key =="deleteProject":
-                await self.channel_layer.group_add(
-                    settings.OVERVIEW_GROUP_NAME,
-                    self.channel_name
-                )
-                await self.channel_layer.group_discard(
-                    settings.CONNECTED_GROUP_NAME,
-                    self.channel_name
-                )
+                if await sync_to_async(deleteProject)(text_data_json):
+                    await self.channel_layer.group_add(
+                        settings.OVERVIEW_GROUP_NAME,
+                        self.channel_name
+                    )
+                    await self.channel_layer.group_discard(
+                        settings.CONNECTED_GROUP_NAME,
+                        self.channel_name
+                    )
+
+
                 await sync_to_async(update_main_display_project)()
-                await sync_to_async(deleteProject)(text_data_json)
+                await sync_to_async(send_meta_data)()
             elif key == "newProject":
                 await sync_to_async(newProject)(text_data_json)
                 await sync_to_async(send_meta_data)()
             elif key == "newPage":
                 await sync_to_async(newPage)()
                 await sync_to_async(update_main_display_max_page)()
+                await sync_to_async(send_mixer_data)()
             elif key == "deletePage":
                 await sync_to_async(deletePage)(text_data_json)
                 await sync_to_async(update_main_display_max_page)()
+                await sync_to_async(send_mixer_data)()
             elif key == "editMixerFader":
                 await sync_to_async(editFader)(text_data_json)
             elif key == "editMixerButton":
@@ -113,14 +120,19 @@ class ChatConsumer(AsyncWebsocketConsumer):
             elif key == "setMixerColor" :
                 await sync_to_async(setMixerColor)(text_data_json)
                 await sync_to_async(updateMixerColor)()
+                await sync_to_async(send_mixer_data)()
             elif key == "addFixtureToGroup":
                 await sync_to_async(addFixtureToGroup)(text_data_json)
+                await sync_to_async(send_group_data)()
             elif key == "removeFixtureFromGroup":
                 await sync_to_async(removeFixtureFromGroup)(text_data_json)
+                await sync_to_async(send_group_data)()
             elif key == "deleteGroup":
                 await sync_to_async(deleteGroup)(text_data_json)
+                await sync_to_async(send_group_data)()
             elif key == "newGroup" :
                 await sync_to_async(newGroup)(text_data_json)
+                await sync_to_async(send_group_data)()
             elif key == "selectFixture":
                 await sync_to_async(selectFixture)(text_data_json)
             elif key == "deselectFixture":
