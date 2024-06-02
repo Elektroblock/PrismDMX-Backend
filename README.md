@@ -4,12 +4,12 @@
 
 - ### add newFixture:
 ```
-    {"newFixture":{"name":"NAME","startChannel":"000","channels":[{"ChannelName":"NAME","ChannelType":"TYPE","dmxChannel":"CHANNEL"},{"ChannelName":"NAME","ChannelType":"TYPE","dmxChannel":"CHANNEL"}]}}
+{"newFixture":{"name":"NAME","startChannel":"000","channels":[{"ChannelName":"NAME","ChannelType":"TYPE","dmxChannel":"CHANNEL"},{"ChannelName":"NAME","ChannelType":"TYPE","dmxChannel":"CHANNEL"}]}}
 ```
 
 - ### editFixture
 ```
-Coming Soon
+{"editFixture":{"internalID" : "ID", "name":"NAME","startChannel":"000","channels":[{"internalID" : "ID", "ChannelName":"NAME","ChannelType":"TYPE","dmxChannel":"CHANNEL"},{"internalID" : "ID", "ChannelName":"NAME","ChannelType":"TYPE","dmxChannel":"CHANNEL"}]}}
 ```
 
 - ### deleteFixture:
@@ -44,12 +44,12 @@ Coming Soon
 
 - ### editMixerFader
 ```
-Coming Soon
+{"editMixerFader":{"id":"ID","name":"NAME","color":"#ffffff","assignedType":"TYPE","assignedID":"ID"}}
 ```
 
 - ### editMixerButton
 ```
-Coming Soon
+{"editMixerButton":{"id":"ID","name":"NAME","color":"#ffffff","assignedType":"TYPE","assignedID":"ID"}}
 ```
 
 - ### setMixerColor:
@@ -77,22 +77,22 @@ Coming Soon
 {"newGroup": "NAME"}
 ```
 
-- ### selectFixture: WRONG DATA SRUCTURE
+- ### selectFixture:
 ```
 {"selectFixture": "ID"}
 ```
 
-- ### deselectFixture: WRONG DATA SRUCTURE
+- ### deselectFixture:
 ```
 {"deselectFixture": "ID"}
 ```
 
-- ### selectFixtureGroup: WRONG DATA SRUCTURE
+- ### selectFixtureGroup:
 ```
 {"selectFixtureGroup": "ID"}
 ```
 
-- ### deselectFixtureGroup: WRONG DATA SRUCTURE
+- ### deselectFixtureGroup:
 ```
 {"deselectFixtureGroup": "ID"}
 ```

@@ -76,6 +76,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 await sync_to_async(send_fixture_data)()
             elif key =="editFixture" in text_data:
                 await sync_to_async(editFixture)(text_data_json)
+                await sync_to_async(send_fixture_data)()
             elif key =="deleteFixture" in text_data:
                 await sync_to_async(deleteFixture)(text_data_json)
                 await sync_to_async(send_fixture_data)()
@@ -115,8 +116,10 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 await sync_to_async(send_mixer_data)()
             elif key == "editMixerFader":
                 await sync_to_async(editFader)(text_data_json)
+                await sync_to_async(send_mixer_data)()
             elif key == "editMixerButton":
                 await sync_to_async(editButton)(text_data_json)
+                await sync_to_async(send_mixer_data)()
             elif key == "setMixerColor" :
                 await sync_to_async(setMixerColor)(text_data_json)
                 await sync_to_async(updateMixerColor)()
@@ -135,12 +138,18 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 await sync_to_async(send_group_data)()
             elif key == "selectFixture":
                 await sync_to_async(selectFixture)(text_data_json)
+                await sync_to_async(send_fixture_data())()
             elif key == "deselectFixture":
                 await sync_to_async(deselectFixture)(text_data_json)
+                await sync_to_async(send_fixture_data())()
             elif key == "selectFixtureGroup":
                 await sync_to_async(selectGroup)(text_data_json)
+                await sync_to_async(send_fixture_data())()
+                await sync_to_async(send_group_data)()
             elif key == "deselectFixtureGroup":
                 await sync_to_async(deselectGroup)(text_data_json)
+                await sync_to_async(send_fixture_data())()
+                await sync_to_async(send_group_data)()
 
             await sync_to_async(updateDisplayText)()
 

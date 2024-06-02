@@ -67,16 +67,16 @@ def editFixture(json):
     # print(json["id"])
 
     try:
-        fixture = Fixture.objects.get(id=int(json["editFixture"]["fixture"]["internalID"]))
+        fixture = Fixture.objects.get(id=int(json["editFixture"]["internalID"]))
 
-        fixture.fixture_name = json["editFixture"]["fixture"]["name"]
-        fixture.fixture_start = json["editFixture"]["fixture"]["startChannel"]
+        fixture.fixture_name = json["editFixture"]["name"]
+        fixture.fixture_start = json["editFixture"]["startChannel"]
         fixture.selected = "false"
         if int(fixture.fixture_start) < 1:
             fixture.fixture_start = 1
 
         fixture.save()
-        for newChannel in json["editFixture"]["fixture"]["channels"]:
+        for newChannel in json["editFixture"]["channels"]:
             #print(newChannel)
             channel = Channel.objects.get(id=int(newChannel["internalID"]))
             channel.channel_name = newChannel["ChannelName"]
@@ -170,19 +170,19 @@ def newPage():
 
 
 def editFader(json):
-    fader = MixerFader.objects.get(id=int(json["editMixerFader"]["fader"]["id"]))
-    fader.name = json["editMixerFader"]["fader"]["name"]
-    fader.color = json["editMixerFader"]["fader"]["color"]
-    fader.assignedType = str(json["editMixerFader"]["fader"]["assignedType"]).replace("#", "")
-    fader.assignedID = int(json["editMixerFader"]["fader"]["assignedID"])
+    fader = MixerFader.objects.get(id=int(json["editMixerFader"]["id"]))
+    fader.name = json["editMixerFader"]["name"]
+    fader.color = json["editMixerFader"]["color"]
+    fader.assignedType = str(json["editMixerFader"]["assignedType"]).replace("#", "")
+    fader.assignedID = int(json["editMixerFader"]["assignedID"])
     fader.save()
 
 def editButton(json):
-    button = MixerButton.objects.get(id=int(json["editMixerButton"]["button"]["id"]))
-    button.name = json["editMixerButton"]["button"]["name"]
-    button.color = json["editMixerButton"]["button"]["color"]
-    button.assignedType = str(json["editMixerButton"]["button"]["assignedType"]).replace("#", "")
-    button.assignedID = int(json["editMixerButton"]["button"]["assignedID"])
+    button = MixerButton.objects.get(id=int(json["editMixerButton"]["id"]))
+    button.name = json["editMixerButton"]["name"]
+    button.color = json["editMixerButton"]["color"]
+    button.assignedType = str(json["editMixerButton"]["assignedType"]).replace("#", "")
+    button.assignedID = int(json["editMixerButton"]["assignedID"])
     button.save()
 
 
@@ -233,43 +233,38 @@ def selectFixture(json_data):
 
     project = Project.objects.get(id=get_loaded_project())
     fixture = Fixture.objects.get(id=int(json_data["selectFixture"]))
-    if not SelectedFixture.objects.filter(project=project, fixture=fixture).exists():
-        selectedfixture = SelectedFixture(project=project, fixture=fixture)
-        selectedfixture.save()
+    fixture.selected="true"
+    fixture.save()
 
 def deselectFixture(json_data):
     try:
         project = Project.objects.get(id=get_loaded_project())
         fixture = Fixture.objects.get(id=int(json_data["deselectFixture"]))
-        selectedfixture = SelectedFixture.objects.get(project=project, fixture=fixture)
-        selectedfixture.delete()
+        fixture.selected = "false"
+        fixture.save()
     except:
         return
 
 def selectGroup(json_data):
 
     project = Project.objects.get(id=get_loaded_project())
-    group = Group.objects.get(id=int(json_data["selectFixtureGroup"]["groupID"]))
+    group = Group.objects.get(id=int(json_data["selectFixtureGroup"]))
+    group.selected="true"
+    group.save()
     group_links = group.grouplink_set.all()
-    selectedgroup = SelectedGroup(project=project, group=group)
-    selectedgroup.save()
     for group_link in group_links:
         fixture = group_link.fixture
-        if not SelectedFixture.objects.filter(project=project, fixture=fixture).exists():
-            selectedfixture = SelectedFixture(project=project, fixture=fixture)
-            selectedfixture.save()
+        fixture.selected = "true"
+        fixture.save()
 
 def deselectGroup(json_data):
-
     project = Project.objects.get(id=get_loaded_project())
-    group = Group.objects.get(id=int(json_data["deselectFixtureGroup"]["groupID"]))
+    group = Group.objects.get(id=int(json_data["deselectFixtureGroup"]))
+    group.selected = "false"
+    group.save()
     group_links = group.grouplink_set.all()
-    selectedgroup = SelectedGroup.objects.get(project=project, group=group)
-    selectedgroup.delete()
-
     for group_link in group_links:
         fixture = group_link.fixture
-        if SelectedFixture.objects.filter(project=project, fixture=fixture).exists():
-            selectedfixture = SelectedFixture.objects.get(project=project, fixture=fixture)
-            selectedfixture.delete()
+        fixture.selected = "false"
+        fixture.save()
 
