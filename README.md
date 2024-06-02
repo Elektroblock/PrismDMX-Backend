@@ -96,3 +96,8 @@
 ```
 {"deselectFixtureGroup": "ID"}
 ```
+
+- ### setClipboard:
+```
+{"setClipboard": "CLIPBOARD"}
+```

@@ -17,7 +17,7 @@ from .databaseHelper import get_loaded_project, get_mixer_page, set_mixer_page, 
 from .models import Fixture, Template, Mixer, Project, MixerPage
 
 from dmxMaster.comunicationHelper import addFixture, editFixture, deleteFixture, setProject, \
-    deleteProject, newProject, editFader, deletePage, setMixerColor, get_template_json, get_meta_data
+    deleteProject, newProject, editFader, deletePage, setMixerColor, get_template_json, get_meta_data, setClipboard
 from datetime import datetime
 
 
@@ -150,6 +150,9 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 await sync_to_async(deselectGroup)(text_data_json)
                 await sync_to_async(send_fixture_data())()
                 await sync_to_async(send_group_data)()
+            elif key == "setClipboard":
+                await sync_to_async(setClipboard)(text_data_json)
+                await sync_to_async(send_meta_data)()
 
             await sync_to_async(updateDisplayText)()
 

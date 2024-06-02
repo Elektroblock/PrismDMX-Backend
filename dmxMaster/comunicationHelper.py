@@ -5,11 +5,11 @@ from .models import Fixture, Project, Mixer, Settings
 import json
 import random
 from dmxMaster.databaseHelper import set_loaded_project, get_loaded_project, set_mixer_page, get_mixer_page, \
-    get_loaded_project, set_setting, get_setting, set_mixer_online, get_mixer_online
+    get_loaded_project, set_setting, get_setting, set_mixer_online, get_mixer_online, get_clipboard, set_clipboard
 
 
 def get_meta_data(newConnection=False):
-    packageJson = {"availableProjects": []}
+    packageJson = {"availableProjects": [], "clipboard": get_clipboard()}
 
     allProjects = Project.objects.all()
 
@@ -268,3 +268,6 @@ def deselectGroup(json_data):
         fixture.selected = "false"
         fixture.save()
 
+
+def setClipboard(json_data):
+    set_clipboard(json_data["setClipboard"])

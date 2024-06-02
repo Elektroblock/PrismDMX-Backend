@@ -57,3 +57,11 @@ def set_mixer_channel_page(mixerpage):
 
 def get_mixer_channel_page():
     return (get_setting("mixerChannelPage"))
+
+
+def set_clipboard(mixerpage):
+    set_setting("clipboard", mixerpage)
+
+
+def get_clipboard():
+    return (get_setting("clipboard"))
