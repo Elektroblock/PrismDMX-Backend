@@ -44,7 +44,8 @@ def get_template_json():
 
 def addFixture(json):
     try:
-
+        if json["newFixture"]["name"] is "":
+            return
         #print(get_loaded_project())
         project = Project.objects.get(id=get_loaded_project())
         # print(json["id"])
@@ -67,6 +68,8 @@ def editFixture(json):
     # print(json["id"])
 
     try:
+        if json["editFixture"]["name"] is "":
+            return
         fixture = Fixture.objects.get(id=int(json["editFixture"]["internalID"]))
 
         fixture.fixture_name = json["editFixture"]["name"]
@@ -116,6 +119,8 @@ def deleteProject(json):
     return False
 
 def newProject(json):
+    if json["newProject"] is "":
+        return
     # r = lambda: random.randint(0, 255)ddd
     # print('#%02X%02X%02X' % (r(), r(), r()))
     project = Project(project_name=json["newProject"])
