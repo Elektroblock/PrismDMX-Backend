@@ -138,17 +138,17 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 await sync_to_async(send_group_data)()
             elif key == "selectFixture":
                 await sync_to_async(selectFixture)(text_data_json)
-                await sync_to_async(send_fixture_data())()
+                await sync_to_async(send_fixture_data)()
             elif key == "deselectFixture":
                 await sync_to_async(deselectFixture)(text_data_json)
-                await sync_to_async(send_fixture_data())()
+                await sync_to_async(send_fixture_data)()
             elif key == "selectFixtureGroup":
                 await sync_to_async(selectGroup)(text_data_json)
-                await sync_to_async(send_fixture_data())()
+                await sync_to_async(send_fixture_data)()
                 await sync_to_async(send_group_data)()
             elif key == "deselectFixtureGroup":
                 await sync_to_async(deselectGroup)(text_data_json)
-                await sync_to_async(send_fixture_data())()
+                await sync_to_async(send_fixture_data)()
                 await sync_to_async(send_group_data)()
             elif key == "setClipboard":
                 await sync_to_async(setClipboard)(text_data_json)

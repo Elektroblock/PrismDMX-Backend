@@ -44,7 +44,7 @@ def get_template_json():
 
 def addFixture(json):
     try:
-        if json["newFixture"]["name"] is "":
+        if json["newFixture"]["name"] == "":
             return
         #print(get_loaded_project())
         project = Project.objects.get(id=get_loaded_project())
@@ -68,7 +68,7 @@ def editFixture(json):
     # print(json["id"])
 
     try:
-        if json["editFixture"]["name"] is "":
+        if json["editFixture"]["name"] == "":
             return
         fixture = Fixture.objects.get(id=int(json["editFixture"]["internalID"]))
 
@@ -119,7 +119,7 @@ def deleteProject(json):
     return False
 
 def newProject(json):
-    if json["newProject"] is "":
+    if json["newProject"] == "":
         return
     # r = lambda: random.randint(0, 255)ddd
     # print('#%02X%02X%02X' % (r(), r(), r()))
@@ -235,15 +235,13 @@ def deleteGroup(json_data):
     group.delete()
 
 def selectFixture(json_data):
-
-    project = Project.objects.get(id=get_loaded_project())
+    print(json_data["selectFixture"])
     fixture = Fixture.objects.get(id=int(json_data["selectFixture"]))
     fixture.selected="true"
     fixture.save()
 
 def deselectFixture(json_data):
     try:
-        project = Project.objects.get(id=get_loaded_project())
         fixture = Fixture.objects.get(id=int(json_data["deselectFixture"]))
         fixture.selected = "false"
         fixture.save()
