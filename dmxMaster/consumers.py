@@ -74,12 +74,15 @@ class ChatConsumer(AsyncWebsocketConsumer):
             if key == "newFixture":
                 await sync_to_async(addFixture)(text_data_json)
                 await sync_to_async(send_fixture_data)()
+                await sync_to_async(updateDisplayText)()
             elif key =="editFixture" in text_data:
                 await sync_to_async(editFixture)(text_data_json)
                 await sync_to_async(send_fixture_data)()
+                await sync_to_async(updateDisplayText)()
             elif key =="deleteFixture" in text_data:
                 await sync_to_async(deleteFixture)(text_data_json)
                 await sync_to_async(send_fixture_data)()
+                await sync_to_async(updateDisplayText)()
             elif key =="setProject" in text_data:
 
                 if await sync_to_async(setProject)(text_data_json):
@@ -88,6 +91,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
                     await sync_to_async(update_main_display_project)()
                     await sync_to_async(addPagesIfNotExisting)()
                     await sync_to_async(send_all_project_data)()
+                    await sync_to_async(updateDisplayText)()
 
             elif key =="deleteProject":
                 if await sync_to_async(deleteProject)(text_data_json):
@@ -103,9 +107,11 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
                 await sync_to_async(update_main_display_project)()
                 await sync_to_async(send_meta_data)()
+                await sync_to_async(updateDisplayText)()
             elif key == "newProject":
                 await sync_to_async(newProject)(text_data_json)
                 await sync_to_async(send_meta_data)()
+                await sync_to_async(updateDisplayText)()
             elif key == "newPage":
                 await sync_to_async(newPage)()
                 await sync_to_async(update_main_display_max_page)()
@@ -114,9 +120,11 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 await sync_to_async(deletePage)(text_data_json)
                 await sync_to_async(update_main_display_max_page)()
                 await sync_to_async(send_mixer_data)()
+                await sync_to_async(updateDisplayText)()
             elif key == "editMixerFader":
                 await sync_to_async(editFader)(text_data_json)
                 await sync_to_async(send_mixer_data)()
+                await sync_to_async(updateDisplayText)()
             elif key == "editMixerButton":
                 await sync_to_async(editButton)(text_data_json)
                 await sync_to_async(send_mixer_data)()
@@ -154,7 +162,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 await sync_to_async(setClipboard)(text_data_json)
                 await sync_to_async(send_meta_data)()
 
-            await sync_to_async(updateDisplayText)()
+
 
         except ValueError as e:
             print("NO VALID JSON: " + text_data)
@@ -171,7 +179,7 @@ class MixerConsumer(AsyncWebsocketConsumer):
         await self.accept()
         # 4 Prefix, 2 Display, ... contend
         await sync_to_async(set_mixer_online)("true")
-        # await sync_to_async(push_all_data)()
+        await sync_to_async(send_mixer_data)()
         await sync_to_async(updateDisplayText)()
         await sync_to_async(updateMixerColor)()
 
@@ -182,7 +190,7 @@ class MixerConsumer(AsyncWebsocketConsumer):
             self.channel_name
         )
         await sync_to_async(set_mixer_online)("false")
-        # await sync_to_async(push_all_data)()
+        await sync_to_async(send_mixer_data)()
 
     async def new_content(self, event):
         await self.send(event['content'])
@@ -191,7 +199,7 @@ class MixerConsumer(AsyncWebsocketConsumer):
         #print(text_data)
 
         if text_data == "reqMain":
-            await self._update_main_display()
+            await sync_to_async(update_main_display_time)()
             await self._change_page(0)
             await sync_to_async(update_main_display_max_page)()
         if text_data == "setup":
@@ -206,7 +214,7 @@ class MixerConsumer(AsyncWebsocketConsumer):
                 project.setup = "true"
                 await sync_to_async(broadcast)("infoSetup", MIXER_GROUP_NAME)
             await sync_to_async(project.save)()
-            #await sync_to_async(push_all_data)()
+            await sync_to_async(send_meta_data)()
         if text_data == "channel":
             project = await sync_to_async(Project.objects.get)(id=await sync_to_async(get_loaded_project)())
             if project.channels_mode == "true":
@@ -216,7 +224,7 @@ class MixerConsumer(AsyncWebsocketConsumer):
                 project.channels_mode = "true"
                 if project.setup == "false": await sync_to_async(broadcast)("infoChannels", MIXER_GROUP_NAME)
             await sync_to_async(project.save)()
-            #await sync_to_async(push_all_data)()
+            await sync_to_async(send_meta_data)()
             await self._change_page(0)
             await sync_to_async(update_main_display_max_page)()
         elif text_data == "pageUP":
@@ -248,12 +256,13 @@ class MixerConsumer(AsyncWebsocketConsumer):
             await sync_to_async(update_main_display_page)(current_index + direction)
         await sync_to_async(updateDisplayText)()
 
-    async def _update_main_display(self):
+def update_main_display_time():
+
         now = datetime.now()
-        await self.send("infoConnected")
-        await self.send("dclh" + str(now.hour))
-        await self.send("dclm" + str(now.minute - 1))
-        await sync_to_async(update_main_display_project)()
+        broadcast("infoConnected", MIXER_GROUP_NAME)
+        broadcast("dclh" + str(now.hour), MIXER_GROUP_NAME)
+        broadcast("dclm" + str(now.minute - 1), MIXER_GROUP_NAME)
+        update_main_display_project()
 
 
 # MixerHelper
@@ -286,7 +295,6 @@ def update_main_display_max_page():
 
 
 def updateDisplayText():
-    return
     project = Project.objects.get(id=get_loaded_project())
     mixer = project.mixer_set.all()[0]
     if project.channels_mode == "false":
