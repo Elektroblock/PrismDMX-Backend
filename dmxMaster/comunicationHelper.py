@@ -177,16 +177,16 @@ def newPage():
 def editFader(json):
     fader = MixerFader.objects.get(id=int(json["editMixerFader"]["id"]))
     fader.name = json["editMixerFader"]["name"]
-    fader.color = json["editMixerFader"]["color"]
-    fader.assignedType = str(json["editMixerFader"]["assignedType"]).replace("#", "")
+    fader.color = json["editMixerFader"]["color"].replace("#", "")
+    fader.assignedType = str(json["editMixerFader"]["assignedType"])
     fader.assignedID = int(json["editMixerFader"]["assignedID"])
     fader.save()
 
 def editButton(json):
     button = MixerButton.objects.get(id=int(json["editMixerButton"]["id"]))
     button.name = json["editMixerButton"]["name"]
-    button.color = json["editMixerButton"]["color"]
-    button.assignedType = str(json["editMixerButton"]["assignedType"]).replace("#", "")
+    button.color = json["editMixerButton"]["color"].replace("#", "")
+    button.assignedType = str(json["editMixerButton"]["assignedType"])
     button.assignedID = int(json["editMixerButton"]["assignedID"])
     button.save()
 
